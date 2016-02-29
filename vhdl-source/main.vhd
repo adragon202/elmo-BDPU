@@ -1,5 +1,6 @@
 -- main 	Top level of design, incorporating all other modules in some degree
---coment
+-- Alans Test Comment
+-- Alans Test comment as Martin
 --Libraries
 library IEEE;
 use IEEE.std_logic_1164.all;
