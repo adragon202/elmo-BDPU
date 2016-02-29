@@ -1,4 +1,5 @@
 -- main 	Top level of design, incorporating all other modules in some degree
+--			This is where all components are connected and cores multiplied
 
 --Libraries
 library IEEE;
@@ -17,7 +18,7 @@ end entity main;
 architecture main_a of main is
 
 begin
-	core_1: WORK.sub_core generic map()
+	core_1: WORK.sub_core generic map() --This line needs to be dynamic, so core_count defines how many cores we have.
 			port map();
 	bram:	WORK.sub_bram generic map()
 			port map();
