@@ -11,9 +11,11 @@ entity single_bit_adder is
 end entity single_bit_adder;
 
 entity matrix_adder is
+	generic(data_size	: integer:= 64);
 end entity matrix_adder;
 
 entity discrete_adder is
+	generic(data_size	: integer:= 64);
 end entity discrete_adder;
 
 --=============ARCHITECTURES============
