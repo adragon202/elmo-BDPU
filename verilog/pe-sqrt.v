@@ -1,4 +1,4 @@
-module squareroot( a, sqrt);
+module squareroot(a, sqrt);
 	//input declaration
 	input a;
 	//output declaration
