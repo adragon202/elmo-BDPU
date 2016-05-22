@@ -1,0 +1,9 @@
+main.v
+pe-add.v
+pe-mean.v
+pe-product.v
+pe-sqrt.v
+pe-square.v
+sub-bram.v
+sub-core.v
+testbench.v
