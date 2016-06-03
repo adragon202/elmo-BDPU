@@ -11,7 +11,7 @@ OUTPUTS:
 	sum = bit 0 of output
 	cout = carry out bit (bit 1 of output)
 */
-module adder64(clk, a, b, cin, sum, cout);
+module adder64(a, b, cin, sum, cout);
 	//input declaration
 	input [63:0] a, b;
 	input cin;
@@ -21,22 +21,9 @@ module adder64(clk, a, b, cin, sum, cout);
 	//port data types
 	wire [63:0] a, b, sum;
 	wire cin, cout;
-	//internal registers
-	reg bufflag;
 	//internal wires
 	wire [3:0] C, G, P;
-	wire [63:0] buf_sum;
-	wire buf_cout;
 	//code starts here
-	bufif1 B_sum(sum, buf_sum, bufflag);
-	bufif1 B_cout(cout, buf_cout, bufflag);
-
-	always @(posedge clk) begin
-		bufflag = 1;
-	end
-	always @(negedge clk) begin
-		bufflag = 0;
-	end
 
 	//Carry Look-Ahead
 	assign C[0] = G[0] | (P[0] & C[0]);
@@ -44,10 +31,10 @@ module adder64(clk, a, b, cin, sum, cout);
 	assign C[2] = G[2] | (P[2] & G[1]) | (P[2] & P[1] & G[0]) | (P[2] & P[1] & P[0] & C[0]);
 
 	//Sum
-	adder16 Add0(a(a[15:0]),	b(b[15:0]),		cin(cin),	sum(sum[15:0]),		cout(),		PG(P[0]),	GG(G[0]));
-	adder16 Add1(a(a[31:16]),	b(b[31:16]),	cin(C[0]),	sum(sum[31:16]),	cout(),		PG(P[1]),	GG(G[1]));
-	adder16 Add2(a(a[47:32]),	b(b[47:32]),	cin(C[1]),	sum(sum[47:32]),	cout(),		PG(P[2]),	GG(G[2]));
-	adder16 Add3(a(a[63:48]),	b(b[63:48]),	cin(C[2]),	sum(sum[63:48]),	cout(cout),	PG(P[3]),	GG(G[3]));
+	adder16 Add0(.a(a[15:0]),	.b(b[15:0]),	.cin(cin),	.sum(sum[15:0]),	.cout(),		.PG(P[0]),	.GG(G[0]));
+	adder16 Add1(.a(a[31:16]),	.b(b[31:16]),	.cin(C[0]),	.sum(sum[31:16]),	.cout(),		.PG(P[1]),	.GG(G[1]));
+	adder16 Add2(.a(a[47:32]),	.b(b[47:32]),	.cin(C[1]),	.sum(sum[47:32]),	.cout(),		.PG(P[2]),	.GG(G[2]));
+	adder16 Add3(.a(a[63:48]),	.b(b[63:48]),	.cin(C[2]),	.sum(sum[63:48]),	.cout(cout),	.PG(P[3]),	.GG(G[3]));
 
 endmodule //adder64
 
@@ -82,10 +69,10 @@ module adder16( a, b, cin, sum, cout, PG, GG);
 	assign C[3] = G[3] | (P[3] & G[2]) | (P[3] & P[2] & G[1]) | (P[3] & P[2] & P[1] & G[0]) | (P[3] & P[2] & P[1] & P[0] & C[0]);
 
 	//Sum
-	adder4 Add0(a(a[3:0]),		b(b[3:0]),		cin(cin),	sum(sum[3:0]),		cout(),		PG(P[0]),	GG(G[0]));
-	adder4 Add1(a(a[7:4]),		b(b[7:4]),		cin(C[0]),	sum(sum[7:4]),		cout(),		PG(P[1]),	GG(G[1]));
-	adder4 Add2(a(a[11:8]),		b(b[11:8]),		cin(C[1]),	sum(sum[11:8]),		cout(),		PG(P[2]),	GG(G[2]));
-	adder4 Add3(a(a[15:12]),	b(b[15:12]),	cin(C[2]),	sum(sum[15:12]),	cout(cout),	PG(P[3]),	GG(G[3]));
+	adder4 Add0(.a(a[3:0]),		.b(b[3:0]),		.cin(cin),	.sum(sum[3:0]),		.cout(),		.PG(P[0]),	.GG(G[0]));
+	adder4 Add1(.a(a[7:4]),		.b(b[7:4]),		.cin(C[0]),	.sum(sum[7:4]),		.cout(),		.PG(P[1]),	.GG(G[1]));
+	adder4 Add2(.a(a[11:8]),	.b(b[11:8]),	.cin(C[1]),	.sum(sum[11:8]),	.cout(),		.PG(P[2]),	.GG(G[2]));
+	adder4 Add3(.a(a[15:12]),	.b(b[15:12]),	.cin(C[2]),	.sum(sum[15:12]),	.cout(cout),	.PG(P[3]),	.GG(G[3]));
 
 	//Propogation and Generation
 	assign PG = P[3] & P[2] & P[1] & P[0];
@@ -106,16 +93,16 @@ OUTPUTS:
 */
 module adder4( a, b, cin, sum, cout, PG, GG);
 	//input declaration
-	input [7:0] a, b;
+	input [3:0] a, b;
 	input cin;
 	//output declaration
-	output [7:0] sum;
+	output [3:0] sum;
 	output cout, PG, GG;
 	//port data types
-	wire [7:0] a, b, sum;
+	wire [3:0] a, b, sum;
 	wire cin, cout;
 	//internal wires
-	wire [7:0] C, G, P;
+	wire [3:0] C, G, P;
 	//code starts here
 	//Carry Look-Ahead
 	assign G = a & b; //Generate
