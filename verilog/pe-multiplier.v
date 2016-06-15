@@ -1,8 +1,4 @@
 
-mult64 m0(a, b, mult);
-
-endmodule
-
 module mult64(a, b, mult);
 //inputs
 input [63:0] a;
