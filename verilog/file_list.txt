@@ -1,6 +1,8 @@
 main.v
 pe-add.v
 pe-mean.v
+pe-multFloat.v
+pe_multiplier.v
 pe-product.v
 pe-sqrt.v
 pe-square.v
