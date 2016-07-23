@@ -1,12 +1,23 @@
 test.o : testbench.v main.v sub-bram.v sub-core.v pe-add.v pe-mean.v pe-product.v pe-sqrt.v pe-square.v
-	ls | grep -v makefile | grep -v *_tb.v | grep -v file_list.txt > file_list.txt
-	iverilog -o test -c file_list.txt
+	ls | grep -v makefile | grep -v *_tb.v | grep -v test-* | grep -v file_list.txt > file_list.txt
+	iverilog -o test-full -c file_list.txt
 	vvp test
 
 add : pe-add_tb.v pe-add.v
 	iverilog -o test-add pe-add_tb.v pe-add.v
 	vvp test-add
 
+divide : pe-divide_tb.v pe-divide.v
+	iverilog -o test-divide pe-divide_tb.v pe-divide.v
+	vvp test-divide
+
+multiply : pe-multiplier_tb.v pe-multiplier.v pe-add.v
+	iverilog -o test-multiply pe-multiplier_tb.v pe-multiplier.v pe-add.v
+	vvp test-multiply
+
+multfloat : pe-multFloat_tb.v pe-multFloat.v pe-add.v pe-mux.v pe-multiplier.v
+	iverilog -o test-multfloat pe-multFloat_tb.v pe-multFloat.v pe-add.v pe-mux.v pe-multiplier.v
+	vvp test-multfloat
+
 clean : 
-	rm test 
-	rm test-add
+	rm test-*
