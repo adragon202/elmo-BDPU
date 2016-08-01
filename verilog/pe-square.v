@@ -3,9 +3,7 @@ module square( a, sqr);
 	input a;
 	//output declaration
 	output sqr;
-	//port data types
-	wire a, sqr;
 	//code starts here
-	product P1(a(a),b(a),prod(sqr));
+	mult32 M1(.a(a),.b(a),.prod(sqr));
 
 endmodule //addbit
