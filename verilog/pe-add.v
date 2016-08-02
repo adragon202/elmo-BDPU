@@ -2,7 +2,6 @@
 /*
 cout,sum = a + b + cin
 Carry Lookahead adder
-Output is buffered, made available on clk.
 INPUTS:
 	a = bit 0
 	b = bit 1
@@ -37,6 +36,40 @@ module adder64(a, b, cin, sum, cout);
 	adder16 Add3(.a(a[63:48]),	.b(b[63:48]),	.cin(C[2]),	.sum(sum[63:48]),	.cout(cout),	.PG(P[3]),	.GG(G[3]));
 
 endmodule //adder64
+
+/*
+cout,sum = a + b + cin
+Carry Lookahead adder
+INPUTS:
+	a = bit 0
+	b = bit 1
+	cin = carry in bit
+OUTPUTS:
+	sum = bit 0 of output
+	cout = carry out bit (bit 1 of output)
+*/
+module adder32(a, b, cin, sum, cout);
+	//input declaration
+	input [31:0] a, b;
+	input cin;
+	//output declaration
+	output [31:0] sum;
+	output cout;
+	//port data types
+	wire [31:0] a, b, sum;
+	wire cin, cout;
+	//internal wires
+	wire [1:0] C, G, P;
+	//code starts here
+
+	//Carry Look-Ahead
+	assign C[0] = G[0] | (P[0] & C[0]);
+
+	//Sum
+	adder16 Add0(.a(a[15:0]),	.b(b[15:0]),	.cin(cin),	.sum(sum[15:0]),	.cout(),		.PG(P[0]),	.GG(G[0]));
+	adder16 Add1(.a(a[31:16]),	.b(b[31:16]),	.cin(C[0]),	.sum(sum[31:16]),	.cout(),		.PG(P[1]),	.GG(G[1]));
+
+endmodule //adder32
 
 /*
 cout,sum = a + b + cin
