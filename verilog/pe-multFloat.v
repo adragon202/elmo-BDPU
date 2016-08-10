@@ -10,7 +10,7 @@ INPUTS:
 OUTPUTS:
 	m = 32 bits
 */
-module mult_float(a,b,m);
+module mult_f32(a,b,m);
 	// inputs 
 	input [31:0] a, b;
 	// outputs

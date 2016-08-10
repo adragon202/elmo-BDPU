@@ -7,8 +7,12 @@ add : pe-add_tb.v pe-add.v
 	iverilog -o test-add pe-add_tb.v pe-add.v
 	echo finish | vvp test-add
 
-divide : pe-divide_tb.v pe-divide.v
-	iverilog -o test-divide pe-divide_tb.v pe-divide.v
+addfloat : pe-add.v pe-addFloat.v
+	iverilog -o test-addfloat pe-addFloat_tb.v pe-add.v pe-addFloat.v
+	echo finish | vvp test-addfloat
+
+divide : pe-divide_tb.v pe-divide.v pe-float.v pe-add.v
+	iverilog -o test-divide pe-divide_tb.v pe-divide.v pe-float.v pe-add.v
 	echo finish | vvp test-divide
 
 multiply : pe-multiplier_tb.v pe-multiplier.v pe-add.v

@@ -16,7 +16,7 @@ module int2float64(a, b);
 	wire [63:0] infix;
 	wire [10:0] highpower;
 	wire [63:0] highpowerrem;
-	wire [10:0] exp;
+	wire [15:0] exp;
 	wire [51:0] mant;
 
 	//Undo 2's Compliment if signed
@@ -25,7 +25,7 @@ module int2float64(a, b);
 
 	//Add Highest Power of 2 to 127, result is exponent
 	highestpower64 exp_power(.a(infix), .b(highpower), .rem(highpowerrem));
-	adder16 exp_add(.a((a == 0) ? 11'd1025 : highpower), .b(11'd 1023), .cin(0), .sum(exp), .cout(), .PG(), .GG());
+	adder16 exp_add(.a((a == 0) ? {5'd0,11'd1025} : {5'd0,highpower}), .b({5'd0,11'd 1023}), .cin(0), .sum(exp), .cout(), .PG(), .GG());
 
 	//Determine Mantissa (Fraction)
 	//Remainder following Highest Power of 2 is fraction (highpowerrem)
@@ -96,7 +96,7 @@ module int2float64(a, b);
 					{12'd0, highpowerrem[62:11]};
 
 	//Assign output to contain sign bit, exponent and mantissa
-	assign b = {a[63], exp, mant};
+	assign b = {a[63], exp[10:0], mant};
 endmodule //int2float64
 
 module float2int64(a, b);
