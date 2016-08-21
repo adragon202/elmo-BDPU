@@ -10,6 +10,7 @@ add : pe-add_tb.v pe-add.v
 addfloat : pe-add.v pe-addFloat.v
 	iverilog -o test-addfloat pe-addFloat_tb.v pe-add.v pe-addFloat.v
 	echo finish | vvp test-addfloat
+	cat sol-addfloat.txt
 
 divide : pe-divide_tb.v pe-divide.v pe-float.v pe-add.v
 	iverilog -o test-divide pe-divide_tb.v pe-divide.v pe-float.v pe-add.v
