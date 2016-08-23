@@ -5,54 +5,54 @@ module test;
 
 	initial begin
 		// 1.5 + 0.25 = 1.75 (1071644672)
-		# 1	a_sign = 0;
-		# 0	a_exp = 8'd 127;
-		# 0	a_mant = 23'd 4194304;
-		# 0 b_sign = 0;
-		# 0 b_exp = 8'd 125;
-		# 0 b_mant = 23'd 0;
+		# 1	a_sign	= 0;
+		# 0	a_exp	= 8'd 127;
+		# 0	a_mant	= 23'd 4194304;
+		# 0	b_sign	= 0;
+		# 0	b_exp	= 8'd 125;
+		# 0	b_mant	= 23'd 0;
 		// 1.5 - 0.25 = 1.25 (1067450368)
-		# 1	a_sign = 0;
-		# 0	a_exp = 8'd 127;
-		# 0	a_mant = 23'd 4194304;
-		# 0 b_sign = 1;
-		# 0 b_exp = 8'd 125;
-		# 0 b_mant = 23'd 0;
+		# 1	a_sign	= 0;
+		# 0	a_exp	= 8'd 127;
+		# 0	a_mant	= 23'd 4194304;
+		# 0	b_sign	= 1;
+		# 0	b_exp	= 8'd 125;
+		# 0	b_mant	= 23'd 0;
 		// 1.5 + 2.5 = 4 (1082130432)
-		# 1	a_sign = 0;
-		# 0	a_exp = 8'd 127;
-		# 0	a_mant = 23'd 4194304;
-		# 0 b_sign = 0;
-		# 0 b_exp = 8'd 128;
-		# 0 b_mant = 23'd 2097152;
+		# 1	a_sign	= 0;
+		# 0	a_exp	= 8'd 127;
+		# 0	a_mant	= 23'd 4194304;
+		# 0	b_sign	= 0;
+		# 0	b_exp	= 8'd 128;
+		# 0	b_mant	= 23'd 2097152;
 		// 1.5 - 2.5 = -1 (3212836864)
-		# 1	a_sign = 0;
-		# 0	a_exp = 8'd 127;
-		# 0	a_mant = 23'd 4194304;
-		# 0 b_sign = 1;
-		# 0 b_exp = 8'd 128;
-		# 0 b_mant = 23'd 2097152;
+		# 1	a_sign	= 0;
+		# 0	a_exp	= 8'd 127;
+		# 0	a_mant	= 23'd 4194304;
+		# 0	b_sign	= 1;
+		# 0	b_exp	= 8'd 128;
+		# 0	b_mant	= 23'd 2097152;
 		// 20.8 + 1.2 = 22 (1102053376)
-		# 1	a_sign = 0;
-		# 0	a_exp = 8'd 131;
-		# 0	a_mant = 23'd 2516582;
-		# 0 b_sign = 0;
-		# 0 b_exp = 8'd 127;
-		# 0 b_mant = 23'd 1677722;
+		# 1	a_sign	= 0;
+		# 0	a_exp	= 8'd 131;
+		# 0	a_mant	= 23'd 2516582;
+		# 0	b_sign	= 0;
+		# 0	b_exp	= 8'd 127;
+		# 0	b_mant	= 23'd 1677722;
 		// 20.8 - 1.2 = 19.6 (1100795085)
-		# 1	a_sign = 0;
-		# 0	a_exp = 8'd 131;
-		# 0	a_mant = 23'd 2516582;
-		# 0 b_sign = 1;
-		# 0 b_exp = 8'd 127;
-		# 0 b_mant = 23'd 1677722;
+		# 1	a_sign	= 0;
+		# 0	a_exp	= 8'd 131;
+		# 0	a_mant	= 23'd 2516582;
+		# 0	b_sign	= 1;
+		# 0	b_exp	= 8'd 127;
+		# 0	b_mant	= 23'd 1677722;
 		// -20.8 - 1.2 = -22 (3249537024)
-		# 1	a_sign = 1;
-		# 0	a_exp = 8'd 131;
-		# 0	a_mant = 23'd 2516582;
-		# 0 b_sign = 1;
-		# 0 b_exp = 8'd 127;
-		# 0 b_mant = 23'd 1677722;
+		# 1	a_sign	= 1;
+		# 0	a_exp	= 8'd 131;
+		# 0	a_mant	= 23'd 2516582;
+		# 0	b_sign	= 1;
+		# 0	b_exp	= 8'd 127;
+		# 0	b_mant	= 23'd 1677722;
 
 		# 10 $stop;
 	end
@@ -71,12 +71,12 @@ module test;
 	wire [EXPONENTWIDTH - 1:0] exp_diff;
 	wire [EXPONENTWIDTH - 1:0] rsltexp;
 	wire [MANTISSAWIDTH - 1:0] rsltmant;
-	wire [MANTISSAWIDTH - 1:0] prersltmant;
-	wire [MANTISSAWIDTH - 1:0] in1_mant;
-	wire [MANTISSAWIDTH - 1:0] in2_mant;
+	wire [MANTISSAWIDTH:0] prersltmant;
+	wire [MANTISSAWIDTH:0] in1_mant;
+	wire [MANTISSAWIDTH:0] in2_mant;
 
 	add_f32 add_f32_1(.a(a), .b(b), .sum(sum)
-		, .a_greater(a_greater), .exp_diff(exp_diff), .sum_exp(rsltexp), .sum_mant(rsltmant)
+		, .a_greater(a_greater), .exp_diff(exp_diff), .sum_exp(rsltexp), .sum_mant({X,rsltmant})
 		, .mant_sum(prersltmant), .out1_mant(in1_mant), .out2_mant(in2_mant));
 
 	initial

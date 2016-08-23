@@ -1,0 +1,24 @@
+iverilog -o test-addfloat pe-addFloat_tb.v pe-add.v pe-addFloat.v
+echo finish | vvp test-addfloat
+At time a(3f801770)(0 127 001770) + b(3f8001f4)(0 127 0001f4) = rslt(40000cb2) a_great(1) expdiff(  0) exp(128) mant(000cb2)(000cb2)(000bb8)(0000fa)
+At time a(3fc00000)(0 127 400000) + b(3e800000)(0 125 000000) = rslt(3fe00000) a_great(1) expdiff(  2) exp(127) mant(600000)(600000)(400000)(200000)
+At time a(3fc00000)(0 127 400000) + b(be800000)(1 125 000000) = rslt(40a00000) a_great(1) expdiff(  2) exp(129) mant(200000)(200000)(400000)(600000)
+At time a(3fc00000)(0 127 400000) + b(40200000)(0 128 200000) = rslt(40c00000) a_great(0) expdiff(  1) exp(129) mant(400000)(000000)(200000)(600000)
+At time a(3fc00000)(0 127 400000) + b(c0200000)(1 128 200000) = rslt(40c00000) a_great(1) expdiff(  1) exp(129) mant(400000)(400000)(200000)(200000)
+At time a(41a66666)(0 131 266666) + b(3f99999a)(0 127 19999a) = rslt(424fffff) a_great(1) expdiff(  4) exp(132) mant(4fffff)(1fffff)(266666)(799999)
+At time a(41a66666)(0 131 266666) + b(bf99999a)(1 127 19999a) = rslt(42566666) a_great(1) expdiff(  4) exp(132) mant(566666)(2ccccd)(266666)(066667)
+At time a(c1a66666)(1 131 266666) + b(bf99999a)(1 127 19999a) = rslt(c29fffff) a_great(0) expdiff(  4) exp(133) mant(1fffff)(600001)(59999a)(066667)
+** VVP Stop(0) **
+** Flushing output streams.
+** Current simulation time is 17 ticks.
+> finish
+** Continue **
+cat sol-addfloat.txt
+0, 1.0007153 + 1.0000596 = 2.0007749	(40000CB2) (128) (000CB2)
+1, 1.5	+ 0.25	= 1.75	(3FE00000) (127) (600000)
+2, 1.5	- 0.25	= 1.25	(3FA00000) (127) (200000)
+3, 1.5	+ 2.5	= 4	(40800000) (129) (000000)
+4, 1.5	- 2.5	= -1	(BF800000) (127) (000000)
+5, 20.8	+ 1.2	= 22	(41B00000) (131) (300000)
+6, 20.8	- 1.2	= 19.6	(419CCCCD) (131) (1CCCCD)
+7, -20.8 - 1.2	= -22	(C1B00000) (131) (300000)
