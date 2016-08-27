@@ -67,7 +67,7 @@ module test;
 		# 0	b_sign	= 1;
 		# 0	b_exp	= 8'd 135;
 		# 0	b_mant	= 23'd 7999324;
-		// 10, -500.12 + 700.12 = 200 (43480000)
+		// 10, -500.12 + 700.12 = 200 (43480000)	
 		# 1	a_sign	= 1;
 		# 0	a_exp	= 8'd 135;
 		# 0	a_mant	= 23'd 7999324;
@@ -193,104 +193,98 @@ module test;
 		# 0 b_sign = 1;
 		# 0 b_exp = 8'd159;
 		# 0 b_mant = 23'd2966242;
-		// 28, NaN	+ 0 = NaN (7fffffff)
+		// 28, NaN			+ 0				= NaN			(7fffffff) (255) (8388607)
 		# 1	a_sign = 0;
 		# 0	a_exp = 8'd255;
 		# 0	a_mant = 23'd8388607;
 		# 0 b_sign = 0;
 		# 0 b_exp = 8'd0;
 		# 0 b_mant = 23'd0;
-		// 29, 0	+ NaN = NaN (7fffffff)
+		// 29, 0			+ NaN			= NaN			(7fffffff) (255) (8388607)
 		# 1	a_sign = 0;
 		# 0	a_exp = 8'd0;
 		# 0	a_mant = 23'd0;
 		# 0 b_sign = 0;
 		# 0 b_exp = 8'd255;
 		# 0 b_mant = 23'd8388607;
-		// 30, 28.382	+ NaN = NaN (7fffffff)
+		// 30, 28.382		+ NaN			= NaN			(7fffffff) (255) (8388607)
 		# 1	a_sign = 0;
 		# 0	a_exp = 8'd131;
 		# 0	a_mant = 23'd6491734;
 		# 0 b_sign = 0;
 		# 0 b_exp = 8'd255;
 		# 0 b_mant = 23'd8388607;
-		// 31, NaN	+ infinity = NaN (7fffffff)
+		// 31, NaN			+ infinity		= NaN			(7fffffff)X (255) (8388607)
 		# 1	a_sign = 0;
 		# 0	a_exp = 8'd255;
 		# 0	a_mant = 23'd8388607;
 		# 0 b_sign = 0;
 		# 0 b_exp = 8'd255;
 		# 0 b_mant = 23'd0;
-		// 32, 0	+ infinity = infinity (7f800000)
+		// 32, 0			+ infinity		= infinity		(7f800000) (255) (0000000)
 		# 1	a_sign = 0;
 		# 0	a_exp = 8'd0;
 		# 0	a_mant = 23'd0;
 		# 0 b_sign = 0;
 		# 0 b_exp = 8'd255;
 		# 0 b_mant = 23'd0;
-		// 33, 3.4028235E38	+ 2.3509886E-38 = 3.4028235e+38 (7f7fffff) (254) (8388607)
+		// 33, 3.4028235E38+ 2.3509886E-38	= 3.4028235e+38 (7f7fffff) 
 		# 1	a_sign = 0;
 		# 0	a_exp = 8'd254;
 		# 0	a_mant = 23'd8388607;
 		# 0 b_sign = 0;
 		# 0 b_exp = 8'd1;
 		# 0 b_mant = 23'd8388607;
-		// 34, 3.4028235E38	- 2.3509886E-38 = 3.4028235e+38 (7f7fffff) (254) (8388607)
+		// 34, 3.4028235E38- 2.3509886E-38	= 3.4028235e+38 (7f7fffff) 
 		# 1	a_sign = 0;
 		# 0	a_exp = 8'd254;
 		# 0	a_mant = 23'd8388607;
 		# 0 b_sign = 1;
 		# 0 b_exp = 8'd1;
 		# 0 b_mant = 23'd8388607;
-		// 35, -3.4028235E38	+ 2.3509886E-38 = -3.4028235e+38 (ff7fffff) (254) (8388607)
+		// 35, -3.4028235E38+ 2.3509886E-38= -3.4028235e+38(ff7fffff) 
 		# 1	a_sign = 1;
 		# 0	a_exp = 8'd254;
 		# 0	a_mant = 23'd8388607;
 		# 0 b_sign = 0;
 		# 0 b_exp = 8'd1;
 		# 0 b_mant = 23'd8388607;
-		// 36, -3.4028235E38	- 2.3509886E-38 = -3.4028235e+38 (ff7fffff) (254) (8388607)
+		// 36, -3.4028235E38- 2.3509886E-38= -3.4028235e+38(ff7fffff) 
 		# 1	a_sign = 1;
 		# 0	a_exp = 8'd254;
 		# 0	a_mant = 23'd8388607;
 		# 0 b_sign = 1;
 		# 0 b_exp = 8'd1;
 		# 0 b_mant = 23'd8388607;
-		// 37, 2.3509886E-38	+ 3.4028235E38	 = 3.4028235e+38 (7f7fffff) (254) (8388607)
+		// 37, 2.3509886E-38+ 3.4028235E38	= 3.4028235e+38 (7f7fffff)
 		# 1	a_sign = 0;
 		# 0	a_exp = 8'd1;
 		# 0	a_mant = 23'd8388607;
 		# 0 b_sign = 0;
 		# 0 b_exp = 8'd254;
 		# 0 b_mant = 23'd8388607;
-		// 38, 2.3509886E-38	- 3.4028235E38	 = -3.4028235e+38 (ff7fffff) (254) (8388607)
+		// 38, 2.3509886E-38- 3.4028235E38	= -3.4028235e+38(ff7fffff)
 		# 1	a_sign = 0;
 		# 0	a_exp = 8'd1;
 		# 0	a_mant = 23'd8388607;
 		# 0 b_sign = 1;
 		# 0 b_exp = 8'd254;
 		# 0 b_mant = 23'd8388607;
-		// 39, -2.3509886E-38	+ 3.4028235E38	 = 3.4028235e+38 (7f7fffff) (254) (8388607)
+		// 39, -2.3509886E-38+ 3.4028235E38= 3.4028235e+38 (7f7fffff) 
 		# 1	a_sign = 1;
 		# 0	a_exp = 8'd1;
 		# 0	a_mant = 23'd8388607;
 		# 0 b_sign = 0;
 		# 0 b_exp = 8'd254;
 		# 0 b_mant = 23'd8388607;
-		// 40, -2.3509886E-38	- 3.4028235E38	 = -3.4028235e+38 (ff7fffff) (254) (8388607)
+		// 40, -2.3509886E-38- 3.4028235E38= -3.4028235e+38(ff7fffff)
 		# 1	a_sign = 1;
 		# 0	a_exp = 8'd1;
 		# 0	a_mant = 23'd8388607;
 		# 0 b_sign = 1;
 		# 0 b_exp = 8'd254;
 		# 0 b_mant = 23'd8388607;
-		// 41, -2.3509884E-38	- 3.4028235E38	 = -3.4028235e+38 (ff7fffff) (254) (8388607)
-		# 1	a_sign = 1;
-		# 0	a_exp = 8'd1;
-		# 0	a_mant = 23'd8388606;
-		# 0 b_sign = 1;
-		# 0 b_exp = 8'd254;
-		# 0 b_mant = 23'd8388607;
+		
 		# 10 $stop;
 	end
 
@@ -314,8 +308,8 @@ module test;
 	wire [MANTISSAWIDTH:0] in2_mant;
 
 	add_f32 add_f32_1(.a(a), .b(b), .sum(sum)
-		, .exp_diff(exp_diff), .sum_exp(rsltexp), .in_exp(prersltexp), .sum_mant({X,rsltmant})
-		, .mant_sum(prersltmant), .out1_mant(in1_mant), .out2_mant(in2_mant), .mant_sum_shift(mant_shift));
+		, .exp_diff(exp_diff), .sum_exp(rsltexp), .in_exp(prersltexp), .sum_mant({X,Y,rsltmant})
+		, .mant_sum({X,prersltmant}), .out1_mant({X,in1_mant}), .out2_mant({X,in2_mant}), .mant_sum_shift(mant_shift));
 
 	initial
 		$monitor("At time a(%h)(%d %d %h) + b(%h)(%d %d %h) = rslt(%h) expdiff(%d) exp(%d)(%d) mantshift(%d) mant(%h)(%h)(%h)(%h)",
