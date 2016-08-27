@@ -4,7 +4,7 @@
 module add_f32(a, b, sum, exp_diff, sum_exp, in_exp, sum_mant, mant_sum_shift, mant_sum, out1_mant, out2_mant);
 	localparam WIDTH = 32;
 	localparam EXPONENTWIDTH = 8;
-	localparam MANTISSAWIDTH = 24; //Input and output Mantissa will be 23 bits
+	localparam MANTISSAWIDTH = 25; //Input and output Mantissa will be 23 bits
 	// inputs 
 	input [WIDTH - 1:0] a, b;
 	// outputs
@@ -13,7 +13,7 @@ module add_f32(a, b, sum, exp_diff, sum_exp, in_exp, sum_mant, mant_sum_shift, m
 	//For Debug Purposes
 	output [EXPONENTWIDTH - 1:0] exp_diff;
 	output [MANTISSAWIDTH - 1:0] mant_sum;
-	output [MANTISSAWIDTH - 1:0] sum_mant;
+	output [MANTISSAWIDTH - 2:0] sum_mant;
 	output [EXPONENTWIDTH - 1:0] sum_exp;
 	output [EXPONENTWIDTH - 1:0] in_exp;
 	output [MANTISSAWIDTH - 1:0] out1_mant;
@@ -24,11 +24,11 @@ module add_f32(a, b, sum, exp_diff, sum_exp, in_exp, sum_mant, mant_sum_shift, m
 	//*********************************************************************
 	// internal wires
 	wire a_sign							= a[WIDTH - 1];
-	wire [EXPONENTWIDTH - 1:0] a_exp	= a[WIDTH - 2:MANTISSAWIDTH-1];
-	wire [MANTISSAWIDTH - 1:0] a_mant	= {1'b1,a[MANTISSAWIDTH-2:0]}; //result is the mantissa with a leading 1. (1.mant)
+	wire [EXPONENTWIDTH - 1:0] a_exp	= a[WIDTH - 2:MANTISSAWIDTH-2];
+	wire [MANTISSAWIDTH - 1:0] a_mant	= {2'b01,a[MANTISSAWIDTH-3:0]}; //result is the mantissa with a leading 1. (1.mant)
 	wire b_sign							= b[WIDTH - 1];
-	wire [EXPONENTWIDTH - 1:0] b_exp	= b[WIDTH - 2:MANTISSAWIDTH-1];
-	wire [MANTISSAWIDTH - 1:0] b_mant	= {1'b1,b[MANTISSAWIDTH-2:0]}; //result is the mantissa with a leading 1. (1.mant)
+	wire [EXPONENTWIDTH - 1:0] b_exp	= b[WIDTH - 2:MANTISSAWIDTH-2];
+	wire [MANTISSAWIDTH - 1:0] b_mant	= {2'b01,b[MANTISSAWIDTH-3:0]}; //result is the mantissa with a leading 1. (1.mant)
 	wire [EXPONENTWIDTH - 1:0] exp_diff;
 	wire [EXPONENTWIDTH - 1:0] exp_neg;
 	wire [MANTISSAWIDTH - 1:0] mant_sum;
@@ -49,7 +49,7 @@ module add_f32(a, b, sum, exp_diff, sum_exp, in_exp, sum_mant, mant_sum_shift, m
 	wire sum_mant_carry;
 	reg rslt_sign;
 	reg [EXPONENTWIDTH - 1:0] rslt_exp;
-	reg [MANTISSAWIDTH - 2:0] rslt_mant;
+	reg [MANTISSAWIDTH - 3:0] rslt_mant;
 
 
 	//Evalute the greater of a_exp or b_exp so that a > b
@@ -85,55 +85,52 @@ module add_f32(a, b, sum, exp_diff, sum_exp, in_exp, sum_mant, mant_sum_shift, m
 	end
 
 	//Create Negative formats for proper addition
-	adder24 add24_mant1_neg(.a(~(in1_mant)), .b(24'b0), .cin(1'd1), .sum(in1_mant_neg));
-	adder24 add24_mant2_neg(.a(~(in2_mant)), .b(24'b0), .cin(1'd1), .sum(in2_mant_neg));
+	adder25 add25_mant1_neg(.a(~(in1_mant)), .b(24'b0), .cin(1'd1), .sum(in1_mant_neg));
+	adder25 add25_mant2_neg(.a(~(in2_mant)), .b(24'b0), .cin(1'd1), .sum(in2_mant_neg));
 	//Sum mantissa's
-	adder24 add24_mantsum(.a((!in1_sign) ? in1_mant : in1_mant_neg),
-							.b((!in2_sign) ? in2_mant : in2_mant_neg),
+	adder25 add25_mantsum(.a((!in1_sign) ? in1_mant : in1_mant_neg),
+							.b((!in2_sign) ? in2_mant: in2_mant_neg),
 							.cin(1'b0),
-							.sum(mant_sum), .cout(sum_mant_carry));
+							.sum(mant_sum), .cout());
 
 	//Normalize
 	//Adjust resulting Exponent
-	leading_zeroes_25 leading_zeroes_mant((mant_sum_sign ? mant_sum_neg : mant_sum), mant_sum_shift);
+	leading_zeroes_25 leading_zeroes_mant((mant_sum_sign ? mant_sum_neg[MANTISSAWIDTH-2:0] : mant_sum[MANTISSAWIDTH-2:0]), mant_sum_shift);
 	//If the exponent difference was only 0 or 1, then the exponent increments or decrements depending on the greater values sign
-	//Needs improvement in normalization
 	adder8 add8_sumexp(.a(in_exp),
-						.b(((sum_mant_carry && !a_sign && !b_sign) || (!sum_mant_carry && a_sign && b_sign)) ? 8'd1 : 
+						.b((mant_sum[MANTISSAWIDTH-1] && a_sign == 0 && b_sign == 0) || (!mant_sum[MANTISSAWIDTH-1] && a_sign == 1 && b_sign == 1) ? 8'd1 : 
 							 {3'b111,~mant_sum_shift}),
-						.cin(((sum_mant_carry && !a_sign && !b_sign) || (!sum_mant_carry && a_sign && b_sign)) ? 1'b0 : 1'b1),
+						.cin((mant_sum[MANTISSAWIDTH-1] && a_sign == 0 && b_sign == 0) || (!mant_sum[MANTISSAWIDTH-1] && a_sign == 1 && b_sign == 1) ? 1'b0 : 1'b1),
 						.sum(sum_exp));
 	//Undo two's compliment on mantissa when the result is negative.
-	adder24 add24_mantsum_neg(.a(~(mant_sum)), .b(24'b0), .cin(1'd1), .sum(mant_sum_neg));
+	adder25 add25_mantsum_neg(.a(~(mant_sum)), .b(25'b0), .cin(1'd1), .sum(mant_sum_neg));
 	assign mant_sum_sign = ((in1_sign && in1_mant > in2_mant) || (in2_sign && in1_mant < in2_mant));
 
 	always @(*) begin
-		if ((sum_mant_carry && !a_sign && !b_sign) || (!sum_mant_carry && a_sign && b_sign))
-			sum_mant <= ((mant_sum_sign) ? {1'b1, mant_sum_neg[MANTISSAWIDTH-1:1]} : {1'b1, mant_sum[MANTISSAWIDTH-1:1]});
+		if ((mant_sum[MANTISSAWIDTH-1] && a_sign == 0 && b_sign == 0) || (!mant_sum[MANTISSAWIDTH-1] && a_sign == 1 && b_sign == 1))
+			sum_mant <= ((mant_sum_sign) ? mant_sum_neg[MANTISSAWIDTH-1:1] : mant_sum[MANTISSAWIDTH-1:1]);
 		else 
 			sum_mant <= ((mant_sum_sign) ? {mant_sum_neg} : mant_sum) << mant_sum_shift;
 	end
 
 	//Evalute final result
+	// assign rslt_sign = (a_sign != b_sign && a_exp == b_exp && a_mant == b_mant) ? 1'd0 : //Special Case Zero
+	// 					(a_abs_greater && a_sign) || (!a_abs_greater && b_sign);
+	// assign rslt_exp = (a_sign != b_sign && a_exp == b_exp && a_mant == b_mant) ? 8'd0 : sum_exp; //Special Case Zero
+	// assign rslt_mant = sum_mant[MANTISSAWIDTH-2:0];
+
 	always @(*) begin 
-		if ((a_exp == 8'd255 && a_mant != 24'h800000) || 
-			(b_exp == 8'd255 && b_mant != 24'h800000) || 
-			(sum_exp == 8'd255 && sum_mant != 24'h800000)) begin //either inputs or sum are NaN
-			rslt_sign = 0;
-			rslt_exp = 8'd255;
-			rslt_mant = 23'h7fffff;
-		end
-		else if (a == 0) begin //One Input is zero
+		if (a == 0) begin 
 			rslt_sign = b_sign;
 			rslt_exp = b_exp;
 			rslt_mant	= b_mant;
 		end 
-		else if (b == 0) begin //One input is zero
+		else if (b == 0) begin 
 			rslt_sign = a_sign;
 			rslt_exp = a_exp;
 			rslt_mant	= a_mant;
 		end 
-		else if (a_sign != b_sign && a_exp == b_exp && a_mant == b_mant) begin //inputs sum to zero
+		else if (a_sign != b_sign && a_exp == b_exp && a_mant == b_mant) begin
 			rslt_sign = 0;
 			rslt_exp = 0;
 			rslt_mant = 0;
@@ -144,11 +141,6 @@ module add_f32(a, b, sum, exp_diff, sum_exp, in_exp, sum_mant, mant_sum_shift, m
 				rslt_exp = a_exp;
 				rslt_mant = (a_sign == b_sign) ? a_sign : 23'h7fffff;
 			end 
-			else begin
-				rslt_sign = (a[WIDTH - 2:0] == 31'h7f800000) ? a_sign : b_sign;
-				rslt_exp = 8'd255;
-				rslt_mant = 0;
-			end
 		end
 		else begin 
 			rslt_sign = (a_abs_greater && a_sign) || (!a_abs_greater && b_sign);
