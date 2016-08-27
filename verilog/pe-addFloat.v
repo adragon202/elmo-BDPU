@@ -100,7 +100,7 @@ module add_f32(a, b, sum, exp_diff, sum_exp, in_exp, sum_mant, mant_sum_shift, m
 	//Needs improvement in normalization
 	adder8 add8_sumexp(.a(in_exp),
 						.b(((sum_mant_carry && !a_sign && !b_sign) || (!sum_mant_carry && a_sign && b_sign)) ? 8'd1 : 
-							 {3'b111,~mant_sum_shift}),
+							{3'b111,~mant_sum_shift}),
 						.cin(((sum_mant_carry && !a_sign && !b_sign) || (!sum_mant_carry && a_sign && b_sign)) ? 1'b0 : 1'b1),
 						.sum(sum_exp));
 	//Undo two's compliment on mantissa when the result is negative.

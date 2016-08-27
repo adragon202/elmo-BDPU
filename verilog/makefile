@@ -12,8 +12,8 @@ addfloat : pe-add.v pe-addFloat.v
 	echo finish | vvp test-addfloat
 	cat sol-addfloat.txt
 
-divide : pe-divide_tb.v pe-divide.v pe-float.v pe-add.v
-	iverilog -o test-divide pe-divide_tb.v pe-divide.v pe-float.v pe-add.v
+divide : pe-divide_tb.v pe-divide.v pe-float.v pe-add.v pe-addFloat.v pe-multFloat.v pe-mux.v pe-multiplier.v
+	iverilog -o test-divide pe-divide_tb.v pe-divide.v pe-float.v pe-add.v pe-addFloat.v pe-multFloat.v pe-mux.v pe-multiplier.v
 	echo finish | vvp test-divide
 
 multiply : pe-multiplier_tb.v pe-multiplier.v pe-add.v

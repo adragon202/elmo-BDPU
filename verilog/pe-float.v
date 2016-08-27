@@ -20,12 +20,12 @@ module int2float64(a, b);
 	wire [51:0] mant;
 
 	//Undo 2's Compliment if signed
-	adder64 input_fix(.a((a[63] == 1) ? ~a : a), .b((a[63] == 1) ? {64'd 1} : 64'd 0), .cin(0), .sum(infix), .cout());
+	adder64 input_fix(.a((a[63] == 1) ? ~a : a), .b((a[63] == 1) ? {64'd 1} : 64'd 0), .cin(1'b0), .sum(infix), .cout());
 	//Determine Exponent
 
 	//Add Highest Power of 2 to 127, result is exponent
 	highestpower64 exp_power(.a(infix), .b(highpower), .rem(highpowerrem));
-	adder16 exp_add(.a((a == 0) ? {5'd0,11'd1025} : {5'd0,highpower}), .b({5'd0,11'd 1023}), .cin(0), .sum(exp), .cout(), .PG(), .GG());
+	adder16 exp_add(.a((a == 0) ? {5'd0,11'd1025} : {5'd0,highpower}), .b({5'd0,11'd 1023}), .cin(1'b0), .sum(exp), .cout(), .PG(), .GG());
 
 	//Determine Mantissa (Fraction)
 	//Remainder following Highest Power of 2 is fraction (highpowerrem)
@@ -182,12 +182,12 @@ module int2float32(a, b);
 	wire [22:0] mant;
 
 	//Undo 2's Compliment if signed
-	adder32 input_fix(.a((a[31] == 1) ? ~a : a), .b((a[31] == 1) ? {32'd 1} : 32'd 0), .cin(0), .sum(infix), .cout());
+	adder32 input_fix(.a((a[31] == 1) ? ~a : a), .b((a[31] == 1) ? {32'd 1} : 32'd 0), .cin(1'b0), .sum(infix), .cout());
 	//Determine Exponent
 
 	//Add Highest Power of 2 to 127, result is exponent
 	highestpower32 exp_power(.a(infix), .b(highpower), .rem(highpowerrem));
-	adder8 exp_add(.a((a == 0) ? 8'd129 : highpower), .b(8'd 127), .cin(0), .sum(exp), .cout(), .PG(), .GG());
+	adder8 exp_add(.a((a == 0) ? 8'd129 : highpower), .b(8'd 127), .cin(1'b0), .sum(exp), .cout(), .PG(), .GG());
 
 	//Determine Mantissa (Fraction)
 	//Remainder following Highest Power of 2 is fraction (highpowerrem)

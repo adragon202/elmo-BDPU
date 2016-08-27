@@ -24,7 +24,7 @@ module divide_f32(clk, rst, num, den, rdy, quo);
 	//code starts here
 
 	recip_f32 rec_1(.clk(clk), .rst(rst), .val(den), .rdy(rdy), .recip(denrecip));
-	// mult_float mult_1(.a(num), .b(denrecip), .mult(quo));
+	mult_f32 mult_1(.a(num), .b(denrecip), .m(quo));
 	
 endmodule //divide_f
 
@@ -40,6 +40,8 @@ endmodule //divide_f
 */
 module recip_f32(clk, rst, val, rdy, recip);
 	localparam WIDTH = 32;
+	localparam EXPONENTWIDTH = 8;
+	localparam MANTISSAWIDTH = 23;
 	//input declaration
 	input clk, rst;
 	input [WIDTH - 1:0] val;
@@ -51,21 +53,41 @@ module recip_f32(clk, rst, val, rdy, recip);
 	reg [WIDTH - 1:0] recip;
 	//Flags and internal calculations
 	reg init;
-	wire [WIDTH - 1:0] init_4817 = 32'd01000000001101001011010010110101;
-	wire [WIDTH - 1:0] init_n3217 = 32'd10111111111100001111000011110001;
+	wire [WIDTH - 1:0] init_4817 = 32'h4034b4b5; //48/17
+	wire [WIDTH - 1:0] init_n3217 = 32'hbff0f0f1; //-32/17
 	wire [WIDTH - 1:0] init_mult;
-	wire [WIDTH - 1:0] iter_2 = 32'd01000000000000000000000000000000;
+	wire [WIDTH - 1:0] iter_2 = 32'h40000000; //2
 	wire [WIDTH - 1:0] iter_mult;
+	wire [WIDTH - 1:0] iter_add;
+	wire [WIDTH - 1:0] recip_init;
 	wire [WIDTH - 1:0] recip_next;
 	wire [WIDTH - 1:0] recip_test;
+	wire recip_acc_sign;
+	wire [EXPONENTWIDTH - 1:0] recip_acc_exp;
+	wire [MANTISSAWIDTH - 1:0] recip_acc_mant;
+	wire [WIDTH - 1:0] test_one = 32'h3f800000;
 	//code starts here
-	//Sign Bit remains the same
-	recip[WIDTH - 1] = val[WIDTH - 1];
 
 	//Test that reciprocal is valid
-	mult_f32 multf32_test1(.a(val), .b(recip), .m(recip_test));
+	//val * recip - 1 = accuracy
+	mult_f32 multf32_test(.a({1'b0,val[WIDTH - 2:0]}), .b({1'b0,recip[WIDTH - 2:0]}), .m(recip_test));
+	add_f32 addf32_test(.a(recip_test), .b({1'b1,test_one[WIDTH - 2:0]}),
+		.sum({recip_acc_sign,recip_acc_exp,recip_acc_mant}));
 	
+	//Initial Guess Modules
+	//Point for Optimization is to improve initial guess
+	//recip = 48/17 - 32/17 * val_D(Normalized with Exponent equal to )
+	mult_f32 multf32_initialguess(.a({9'd126, val[22:0]}), .b(init_n3217), .m(init_mult));
+	add_f32 addf32_initialguess(.a(init_4817), .b(init_mult), .sum(recip_init));
+
+	//Adjustment/Iteration Modules
+	//recip_next = recip_current(2 - value*recip_current)
+	mult_f32 multf32_itermult(.a({1'b1,val[30:0]}), .b(recip), .m(iter_mult));
+	add_f32 addf32_iteradd(.a(iter_2), .b(iter_mult), .sum(iter_add));
+	mult_f32 multf32_iternext(.a(recip), .b(iter_add), .m(recip_next));
 	always @(posedge clk or posedge rst) begin
+		//Sign Bit remains the same
+		recip[WIDTH - 1] <= val[WIDTH - 1];
 		if (rst) begin
 			// reset
 			init = 1;
@@ -78,23 +100,20 @@ module recip_f32(clk, rst, val, rdy, recip);
 				//Set initial Guess
 				if (init == 1) begin
 					if (val == 0) begin
-						recip = 0;
+						recip[WIDTH - 2:0] = 0;
 						rdy = 1;
 					end else begin
-						//recip = 48/17 - 32/17 * val_D(Normalized with Exponent equal to )
-						mult_f32 multf32_initialguess(.a({9'b001111110,val[22:0]}), .b(init_3217), .m(init_mult));
-						add_f32 addf32_initialguess(.a(init_4817), .b(init_mult), .sum(recip)); //TODO: Make Floating Point Adder
+						//Initial Guess
+						recip[WIDTH - 2:0] <= recip_init[WIDTH - 2:0];
 					end
 					init = 0;
 				//Perform Adjustment
 				end else begin
-					//recip_next = recip_current(2 - value*recip_current)
-					mult_f32 multf32_itermult(.a({1'b1,val[30:0]}), .b(recip), .m(iter_mult));
-					add_f32 addf32_iteradd(.a(iter_2), .b(iter_mult), .m(iter_add)); //TOOD: Make Floating Point Adder
-					mult_f32 multf32_iternext(.a(recip), .b(iter_add), .m(recip_next));
+					//Adjustment/Iteration
+					recip[WIDTH - 2:0] <= recip_next[WIDTH - 2:0];
 				end
 				//Evalute if the solution is acceptable
-				if (recip_test == 1) begin
+				if (recip_acc_exp < 127 && recip_acc_sign < 10) begin
 					rdy = 1;
 				end
 			end
