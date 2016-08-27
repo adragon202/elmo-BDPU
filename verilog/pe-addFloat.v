@@ -33,7 +33,6 @@ module add_f32(a, b, sum, exp_diff, sum_exp, in_exp, sum_mant, mant_sum_shift, m
 	wire [EXPONENTWIDTH - 1:0] exp_neg;
 	wire [MANTISSAWIDTH - 1:0] mant_sum;
 	wire [4:0] mant_sum_shift;
-	wire [7:0] mant_sum_shift_neg;
 	wire [MANTISSAWIDTH - 1:0] mant_sum_neg;
 	wire mant_sum_sign;
 	wire a_abs_greater;
@@ -77,8 +76,8 @@ module add_f32(a, b, sum, exp_diff, sum_exp, in_exp, sum_mant, mant_sum_shift, m
 		in_exp	 <= (a_exp_greater) ? a_exp  : b_exp; //After this step exponents will be equal
 		//Shift in2 as the lesser value
 		if (exp_diff == 0) begin
-			in1_mant <= ((a_exp_greater) ? a_mant : b_mant) >> 1;
-			in2_mant <= ((!a_exp_greater) ? a_mant : b_mant) >> 1;
+			in1_mant <= ((a_exp_greater) ? a_mant : b_mant);
+			in2_mant <= ((!a_exp_greater) ? a_mant : b_mant);
 		end else begin
 			in1_mant <= ((a_exp_greater) ? a_mant : b_mant);
 			in2_mant <= ((!a_exp_greater) ? a_mant : b_mant) >> (exp_diff);
@@ -97,23 +96,34 @@ module add_f32(a, b, sum, exp_diff, sum_exp, in_exp, sum_mant, mant_sum_shift, m
 	//Normalize
 	//Adjust resulting Exponent
 	leading_zeroes_25 leading_zeroes_mant((mant_sum_sign ? mant_sum_neg : mant_sum), mant_sum_shift);
-	adder8 add8_mantsum_neg(.a({3'b111,~mant_sum_shift}), .b(8'b0), .cin(1'b1), .sum(mant_sum_shift_neg));
 	//If the exponent difference was only 0 or 1, then the exponent increments or decrements depending on the greater values sign
+	//Needs improvement in normalization
 	adder8 add8_sumexp(.a(in_exp),
-						.b((mant_sum_shift == 24 || a_exp == b_exp) ? 8'd1: mant_sum_shift_neg),
-						.cin(1'b0),
+						.b(((sum_mant_carry && !a_sign && !b_sign) || (!sum_mant_carry && a_sign && b_sign)) ? 8'd1 : 
+							 {3'b111,~mant_sum_shift}),
+						.cin(((sum_mant_carry && !a_sign && !b_sign) || (!sum_mant_carry && a_sign && b_sign)) ? 1'b0 : 1'b1),
 						.sum(sum_exp));
 	//Undo two's compliment on mantissa when the result is negative.
 	adder24 add24_mantsum_neg(.a(~(mant_sum)), .b(24'b0), .cin(1'd1), .sum(mant_sum_neg));
 	assign mant_sum_sign = ((in1_sign && in1_mant > in2_mant) || (in2_sign && in1_mant < in2_mant));
 
 	always @(*) begin
-		sum_mant <= ((mant_sum_sign) ? mant_sum_neg : mant_sum) << mant_sum_shift;
+		if ((sum_mant_carry && !a_sign && !b_sign) || (!sum_mant_carry && a_sign && b_sign))
+			sum_mant <= ((mant_sum_sign) ? {1'b1, mant_sum_neg[MANTISSAWIDTH-1:1]} : {1'b1, mant_sum[MANTISSAWIDTH-1:1]});
+		else 
+			sum_mant <= ((mant_sum_sign) ? {mant_sum_neg} : mant_sum) << mant_sum_shift;
 	end
 
 	//Evalute final result
 	always @(*) begin 
-		if (a == 0) begin //One input is zero
+		if ((a_exp == 8'd255 && a_mant != 24'h800000) || 
+			(b_exp == 8'd255 && b_mant != 24'h800000) || 
+			(sum_exp == 8'd255 && sum_mant != 24'h800000)) begin //either inputs or sum are NaN
+			rslt_sign = 0;
+			rslt_exp = 8'd255;
+			rslt_mant = 23'h7fffff;
+		end
+		else if (a == 0) begin //One Input is zero
 			rslt_sign = b_sign;
 			rslt_exp = b_exp;
 			rslt_mant	= b_mant;
@@ -123,22 +133,29 @@ module add_f32(a, b, sum, exp_diff, sum_exp, in_exp, sum_mant, mant_sum_shift, m
 			rslt_exp = a_exp;
 			rslt_mant	= a_mant;
 		end 
-		else if (a_sign != b_sign && a_exp == b_exp && a_mant == b_mant) begin //both inputs are zero
+		else if (a_sign != b_sign && a_exp == b_exp && a_mant == b_mant) begin //inputs sum to zero
 			rslt_sign = 0;
 			rslt_exp = 0;
 			rslt_mant = 0;
 		end 
+		else if (a[WIDTH - 2:0] == 31'h7f800000 || b[WIDTH - 2:0] == 31'h7f800000) begin //either results are +-infinite
+			if (a[WIDTH - 2:0] == b[WIDTH - 2:0]) begin
+				rslt_sign = (a_sign == b_sign) ? a_sign : 0;
+				rslt_exp = a_exp;
+				rslt_mant = (a_sign == b_sign) ? a_sign : 23'h7fffff;
+			end 
+			else begin
+				rslt_sign = (a[WIDTH - 2:0] == 31'h7f800000) ? a_sign : b_sign;
+				rslt_exp = 8'd255;
+				rslt_mant = 0;
+			end
+		end
 		else begin 
 			rslt_sign = (a_abs_greater && a_sign) || (!a_abs_greater && b_sign);
 			rslt_exp = sum_exp;
 			rslt_mant = sum_mant[MANTISSAWIDTH-2:0];
 		end 
 	end
-	// assign rslt_sign = (a_sign != b_sign && a_exp == b_exp && a_mant == b_mant) ? 1'd0 : //Special Case Zero
-	// 					(a_abs_greater && a_sign) || (!a_abs_greater && b_sign);
-	// assign rslt_exp = (a_sign != b_sign && a_exp == b_exp && a_mant == b_mant) ? 8'd0 : //Special Case Zero
-	// 					sum_exp;
-	// assign rslt_mant = sum_mant[MANTISSAWIDTH-2:0];
 
 	assign sum = {rslt_sign, rslt_exp, rslt_mant};
 
