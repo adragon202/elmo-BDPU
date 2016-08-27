@@ -71,6 +71,31 @@ module adder32(a, b, cin, sum, cout);
 
 endmodule //adder32
 
+module adder25(a, b, cin, sum, cout);
+	//input declaration
+	input [24:0] a, b;
+	input cin;
+	//output declaration
+	output [24:0] sum;
+	output cout;
+	//internal wires
+	wire [2:0] C;
+	wire [2:0] P, G;
+	//code starts here
+	//Carry Look-Ahead
+	assign C[0] = G[0] | (P[0] & cin);
+	assign C[1] = G[1] | (P[1] & G[0]) | (P[1] & P[0] & C[0]);
+	assign C[2] = G[2] | (G[1] & P[2]) | (G[0] & P[1] & P[2]) | (C[0] & P[0] & P[1] & P[2]);
+
+	// create 3 8-bit adders
+	adder8 add0(.a(a[7:0]),		.b(b[7:0]),		.cin(cin),	.sum(sum[7:0]),		.cout(), 		.PG(P[0]), .GG(G[0]));
+	adder8 add1(.a(a[15:8]),	.b(b[15:8]),	.cin(C[0]),	.sum(sum[15:8]),	.cout(), 		.PG(P[1]), .GG(G[1]));
+	adder8 add2(.a(a[23:16]),	.b(b[23:16]),	.cin(C[1]),	.sum(sum[23:16]),	.cout(), 	.PG(P[2]), .GG(G[2]));
+	addbit add3(.a(a[24]), .b(b[24]), .cin(C[2]), .sum(sum[24]), .cout(cout));
+
+endmodule //adder25
+
+
 /*
 cout,sum = a + b + cin
 Carry Lookahead
