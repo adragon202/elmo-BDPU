@@ -37,8 +37,9 @@ endmodule //divide_f
 *OUTPUTS:
 *	rdy = output is ready
 *	recip = reciprocal of value
+*	recip_acc = recip*acc - 1
 */
-module recip_f32(clk, rst, val, rdy, recip);
+module recip_f32(clk, rst, val, rdy, recip, recip_acc);
 	localparam WIDTH = 32;
 	localparam EXPONENTWIDTH = 8;
 	localparam MANTISSAWIDTH = 23;
@@ -48,6 +49,7 @@ module recip_f32(clk, rst, val, rdy, recip);
 	//output declaration
 	output rdy;
 	output [WIDTH - 1:0] recip;
+	output [WIDTH - 1:0] recip_acc;
 	//port data types
 	reg rdy;
 	reg [WIDTH - 1:0] recip;
@@ -65,6 +67,7 @@ module recip_f32(clk, rst, val, rdy, recip);
 	wire recip_acc_sign;
 	wire [EXPONENTWIDTH - 1:0] recip_acc_exp;
 	wire [MANTISSAWIDTH - 1:0] recip_acc_mant;
+	wire [WIDTH - 1:0] recip_acc = {recip_acc_sign, recip_acc_exp, recip_acc_mant};
 	wire [WIDTH - 1:0] test_one = 32'h3f800000;
 	//code starts here
 
@@ -82,17 +85,16 @@ module recip_f32(clk, rst, val, rdy, recip);
 
 	//Adjustment/Iteration Modules
 	//recip_next = recip_current(2 - value*recip_current)
-	mult_f32 multf32_itermult(.a({1'b1,val[30:0]}), .b(recip), .m(iter_mult));
-	add_f32 addf32_iteradd(.a(iter_2), .b(iter_mult), .sum(iter_add));
+	mult_f32 multf32_itermult(.a(val), .b(recip), .m(iter_mult));
+	add_f32 addf32_iteradd(.a(iter_2), .b({1'b1,iter_mult[WIDTH-2:0]}), .sum(iter_add));
 	mult_f32 multf32_iternext(.a(recip), .b(iter_add), .m(recip_next));
 	always @(posedge clk or posedge rst) begin
 		//Sign Bit remains the same
-		recip[WIDTH - 1] <= val[WIDTH - 1];
 		if (rst) begin
 			// reset
-			init = 1;
-			rdy = 0;
-			recip[WIDTH - 2:0] = 0;
+			init <= 1;
+			rdy <= 0;
+			recip[WIDTH - 2:0] <= 0;
 		end
 		else if (!rst & clk) begin
 			//Don't try to calculate if the answer is already acceptable
@@ -100,21 +102,21 @@ module recip_f32(clk, rst, val, rdy, recip);
 				//Set initial Guess
 				if (init == 1) begin
 					if (val == 0) begin
-						recip[WIDTH - 2:0] = 0;
-						rdy = 1;
+						recip<= 0;
+						rdy <= 1;
 					end else begin
 						//Initial Guess
-						recip[WIDTH - 2:0] <= recip_init[WIDTH - 2:0];
+						recip <= recip_init;
 					end
-					init = 0;
+					init <= 0;
 				//Perform Adjustment
+				//Evalute if the solution is acceptable
+				end else if (recip_acc_exp == 0) begin //exponent is less than 20 to catch possible infinite loops
+					rdy <= 1;
+					recip[WIDTH - 1] <= val[WIDTH - 1];
 				end else begin
 					//Adjustment/Iteration
-					recip[WIDTH - 2:0] <= recip_next[WIDTH - 2:0];
-				end
-				//Evalute if the solution is acceptable
-				if (recip_acc_exp < 127 && recip_acc_sign < 10) begin
-					rdy = 1;
+					recip <= recip_next;
 				end
 			end
 		end
