@@ -2,6 +2,7 @@
 /*
 *quo = num / den
 *performed by recriprocal approximation (Newton-Raphson Method)
+*Provides accuracy within (val*recip - 1) < 10^-7
 *INPUTS:
 *	clk = clock input (trigger low to high)
 *	rst = reset input (trigger low to high)
