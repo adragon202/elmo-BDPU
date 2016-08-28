@@ -28,6 +28,10 @@ float : pe-float_tb.v pe-float.v pe-add.v
 	iverilog -o test-float pe-float_tb.v pe-float.v pe-add.v
 	echo finish | vvp test-float
 
+sqrt : pe-sqrt_tb.v pe-sqrt.v pe-mean.v pe-divide.v pe-add.v pe-addFloat.v pe-multFloat.v pe-mux.v pe-multiplier.v
+	iverilog -o test-sqrt pe-sqrt_tb.v pe-sqrt.v pe-mean.v pe-divide.v pe-add.v pe-addFloat.v pe-multFloat.v pe-mux.v pe-multiplier.v
+	echo finish | vvp test-sqrt
+
 simpletest : test-simple_tb.v
 	iverilog -o test-simple test-simple_tb.v
 	echo finish | vvp test-simple
