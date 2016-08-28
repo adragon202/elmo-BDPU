@@ -12,14 +12,19 @@ module mult_tb();
 		#1 a = 32'h49742400; b = 32'h4cead734;  // 1000000.0*123124128.0
 		#1 a = 32'h40400000; b = 32'h00000000;  // 3.0 * 0.0
 		#1 a = 32'hbf8ccccd; b = 32'h40a00000;  // -1.1 * 5.0
+		#1 a = 32'h7f800000; b = 32'h00000000;  // infinity * 0 = 0x7f800000
+		#1 a = 32'h00000000; b = 32'h7f800000;  // 0 * infinity = 0x7f800000
+		#1 a = 32'hbf800000; b = 32'h7f800000;  // -1 * infinity = 0xff800000
+		#1 a = 32'h3f800000; b = 32'hff800000;  // 1 * -infinity = 0xff800000
+		#1 a = 32'hbf800000; b = 32'hff800000;  // -1 * -infinity = 0x7f800000
 
 		#3 $stop;
 	end
 
-	mult_float mf(.a(a), .b(b), .m(mult));
+	mult_f32 mf(.a(a), .b(b), .m(mult));
 
     initial
-        $monitor("At time %t, a(%d) * b(%d) = mult(%d)",
+        $monitor("At time %t, a(%d) * b(%d) = mult(0x%h)",
                 $time, a, b, mult);
 
 endmodule 

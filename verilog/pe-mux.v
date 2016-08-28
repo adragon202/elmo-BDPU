@@ -44,7 +44,7 @@ module mux32(a, b, switch, out);
 	// outputs
 	output [31:0] out;
 
-	// create 8 1-bit muxes
+	// create 32 1-bit muxes
 	genvar i;
 	generate
 		for (i=0; i<32; i=i+1)
