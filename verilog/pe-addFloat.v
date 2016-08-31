@@ -136,6 +136,11 @@ module add_f32(a, b, sum, exp_diff, sum_exp, in_exp, sum_mant, mant_sum_shift, m
 				rslt_exp = a_exp;
 				rslt_mant = (a_sign == b_sign) ? a_sign : 23'h7fffff;
 			end 
+			else begin
+				rslt_sign = (a[WIDTH - 2:0] == 31'h7f800000) ? a_sign : b_sign;
+				rslt_exp = 8'hFF;
+				rslt_mant = 0;
+			end
 		end
 		else begin 
 			rslt_sign = (a_abs_greater && a_sign) || (!a_abs_greater && b_sign);

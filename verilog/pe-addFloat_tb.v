@@ -309,7 +309,7 @@ module test;
 
 	add_f32 add_f32_1(.a(a), .b(b), .sum(sum)
 		, .exp_diff(exp_diff), .sum_exp(rsltexp), .in_exp(prersltexp), .sum_mant({X,Y,rsltmant})
-		, .mant_sum({X,prersltmant}), .out1_mant({X,in1_mant}), .out2_mant({X,in2_mant}), .mant_sum_shift(mant_shift));
+		, .mant_sum(prersltmant), .out1_mant(in1_mant), .out2_mant(in2_mant), .mant_sum_shift(mant_shift));
 
 	initial
 		$monitor("At time a(%h)(%d %d %h) + b(%h)(%d %d %h) = rslt(%h) expdiff(%d) exp(%d)(%d) mantshift(%d) mant(%h)(%h)(%h)(%h)",
