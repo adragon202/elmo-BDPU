@@ -23,16 +23,17 @@ module test;
 	wire [31:0] curr_result;
 	wire [31:0] curr_mean;
 	wire sqrt_rdy;
+	wire [2:0] sqrt_state;
 
 	always
 		#5 clk  = !clk;
 
-	squareroot_f32_approximation sqrtf32(.clk(clk), .rst(rst), .a(a), .rdy(sqrt_rdy), .sqrt(sqrt),
+	squareroot_f32_approximation sqrtf32(.clk(clk), .rst(rst), .a(a), .rdy(sqrt_rdy), .sqrt(sqrt), .state(sqrt_state),
 										.den(curr_den), .divide_result(curr_div_rslt),
 										.result(curr_result), .mn(curr_mean));
 	initial
-		$monitor("%g\t rst(%b) sqrt(0x%h) = (?0x%h?) (0x%h) rdy(%b) 0x%h/0x%h=0x%h mean(0x%h,0x%h)=0x%h",
-				$time, rst, a, sol, sqrt, sqrt_rdy, a, curr_den, curr_div_rslt,
+		$monitor("%g\t rst(%b) sqrt(0x%h) =(%d) (?0x%h?) (0x%h) rdy(%b) 0x%h/0x%h=0x%h mean(0x%h,0x%h)=0x%h",
+				$time, rst, a, sqrt_state, sol, sqrt, sqrt_rdy, a, curr_den, curr_div_rslt,
 				curr_den, curr_result, curr_mean);
 
 endmodule //test
