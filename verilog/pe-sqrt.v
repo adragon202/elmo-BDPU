@@ -116,10 +116,18 @@ OUTPUTS:
 	rdy = flag output is valid
 	sqrt = Square Root of input
 */
-module squareroot_f32_approximation(clk, rst, a, rdy, sqrt, den, divide_result);
+module squareroot_f32_approximation(clk, rst, a, rdy, sqrt, den, divide_result, result, mn);
 	localparam WIDTH = 32;
 	localparam EXPONENTWIDTH = 8;
 	localparam MANTISSAWIDTH = 23;
+	localparam STATE_INIT = 0;
+	localparam STATE_BEGINDIVIDE = 1;
+	localparam STATE_DIVIDE = 2;
+	localparam STATE_EVALDIVIDE = 3;
+	localparam STATE_BEGINMEAN = 4;
+	localparam STATE_MEAN = 5;
+	localparam STATE_EVALMEAN = 6;
+	localparam STATE_COMPLETE = 7;
 	//input declaration
 	input clk, rst;
 	input [WIDTH - 1:0] a;
@@ -128,6 +136,8 @@ module squareroot_f32_approximation(clk, rst, a, rdy, sqrt, den, divide_result);
 	output [WIDTH - 1:0] sqrt;
 	output [WIDTH - 1:0] divide_result;
 	output [WIDTH - 1:0] den;
+	output [WIDTH - 1:0] mn;
+	output [WIDTH - 1:0] result;
 	//port data types
 	wire [WIDTH - 1:0] a;
 	wire a_sign = a[WIDTH - 1];
@@ -142,9 +152,9 @@ module squareroot_f32_approximation(clk, rst, a, rdy, sqrt, den, divide_result);
 	wire divide_rdy;
 	reg mean_rst;
 	wire mean_rdy;
-	reg init;
 	wire [WIDTH - 1:0] mn, divide_result;
 	reg [WIDTH - 1:0] den, result;
+	reg [2:0] state = 0;
 	//code starts here
 
 	//============Resolve exponent=================
@@ -165,30 +175,45 @@ module squareroot_f32_approximation(clk, rst, a, rdy, sqrt, den, divide_result);
 			rdy <= 0;
 			result <= 0;
 			// sqrt <= 0;
-			init <= 1;
+			state <= STATE_INIT;
 		end
 		else if (!rst && clk) begin
 			if (!rdy) begin
-				if (init) begin
-					init <= 0;
+				if (state == STATE_INIT) begin //Initialize
 					den <= {1'b0,(a_exp < 127) ? 1'b0 :
 						sqrt_exp[EXPONENTWIDTH - 1], sqrt_exp[EXPONENTWIDTH - 2:0],23'd0}; //exponent < 127 then null highest bit
-				end else if (divide_rst) begin
+					state <= STATE_BEGINDIVIDE;
+				end else if (state == STATE_BEGINDIVIDE) begin //Begin Division
 					mean_rst <= 1;
+					divide_rst <= 1;
+					state <= STATE_DIVIDE;
+				end	else if (state == STATE_DIVIDE) begin //Await Division to complete
 					divide_rst <= 0;
-				end	else if (divide_rdy) begin
+					state <= (divide_rdy) ? STATE_EVALDIVIDE: STATE_DIVIDE;
+				end else if (state == STATE_EVALDIVIDE) begin //Division is complete
 					if (den == divide_result) begin
 						// sqrt <= divide_result;
-						rdy <= 1;
+						state <= STATE_COMPLETE;
 					end else begin
-						result <= divide_result;
-						mean_rst <= 0;
+						mean_rst <= 1;
 						divide_rst <= 0;
+						state <= STATE_BEGINMEAN;
 					end
-				end else if (mean_rdy) begin
+				end else if (state == STATE_BEGINMEAN) begin //Begin Mean Calculation
+					result <= divide_result;
 					den <= mn;
 					mean_rst <= 1;
 					divide_rst <= 1;
+					state <= STATE_MEAN;
+				end else if (state == STATE_MEAN) begin //Await Mean to complete
+					mean_rst <= 0;
+					state <= (mean_rdy) ? STATE_EVALMEAN : STATE_MEAN;
+				end else if (state == STATE_EVALMEAN) begin //Mean calculation is complete
+					den <= mn;
+				end else if (state == STATE_COMPLETE) begin //Process is complete
+					rdy <= 1;
+				end else begin
+					state <= STATE_COMPLETE;
 				end
 			end
 		end
