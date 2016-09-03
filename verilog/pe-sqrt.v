@@ -11,11 +11,12 @@ module squareroot_f32(clk, rst, a, rdy, sqrt);
 	wire [WIDTH - 1:0] a, sqrt;
 	//code starts here
 
-squareroot_f32_approximation sqrtf32(.clk(clk), .rst(rst), .a(a), .rdy(rdy), .sqrt(sqrt));
+sqrt32_bit_by_bit sqrtf32(.clk(clk), .rst(rst), .a(a), .rdy(rdy), .sqrt(sqrt));
 
 endmodule //squareroot_f32
 
 /*
+*******************************NOT OPERATIONAL*******************************
 short isqrt(short num) {
     short res = 0;
     short bit = 1 << 14; // The second-to-top bit is set: 1 << 30 for 32 bits
@@ -101,6 +102,7 @@ module squareroot_f32_digit_by_digit(clk, rst, a, rdy, sqrt);
 endmodule //squareroot_f32_digit_by_digit
 
 /*
+*********************************NOT OPERATIONAL*********************************
 Uses approximation method
 #1. Set den to 2
 #2. a/den = result (float)
@@ -231,3 +233,130 @@ module squareroot_f32_approximation(clk, rst, a, rdy, sqrt, state, den, divide_r
 	assign sqrt = {a_sign,divide_result[WIDTH-2:0]};
 endmodule //squareroot_f32_approximation
 
+/////////////////////////////////////////////////////////////////////////
+// calculates square root by finding each bit of the mantissa one by one
+// procedure: 
+// 		0. find exponent, set mantissa = 0
+//	  1. set mantissa[22] = 1
+//		2. square result 
+//		3. if result is greater than a, mantissa[22] should be 0
+//		4. repeat from step 1 for all bits in the mantissa
+/////////////////////////////////////////////////////////////////////////
+module sqrt32_bit_by_bit(
+	input clk, 							 // clock signal	
+	input rst, 							 // reset signal
+	input [WIDTH-1:0] a,     // input floating number 
+	output reg rdy, 				 // flag signals data is ready
+	output [WIDTH-1:0] sqrt  // square root of input a
+	); 
+	// definitions
+	localparam WIDTH = 32;
+	localparam EXPONENTWIDTH = 8;
+	localparam MANTISSAWIDTH = 23;
+	localparam IDLE = 0;
+	localparam STATE_TEST = 1;
+	localparam STATE_COMPLETE = 2;
+	// reg types
+	reg [MANTISSAWIDTH-1:0] sqrt_mant, next_sqrt_mant;
+	reg [MANTISSAWIDTH-1:0] set_bit_high, next_high;
+	reg [1:0] state, next_state;
+
+	// local wires
+	wire [WIDTH-1:0] sqrt_guess;
+	wire [WIDTH-1:0] square_sqrt_guess; 
+	wire [MANTISSAWIDTH-1:0] a_mant = a[MANTISSAWIDTH-1:0];
+	wire [MANTISSAWIDTH-1:0] mant_guess, square_sqrt_guess_mant;
+	wire [EXPONENTWIDTH-1:0] exp_denorm;
+	wire [EXPONENTWIDTH-1:0] a_exp = a[WIDTH-2:MANTISSAWIDTH];
+	wire [EXPONENTWIDTH-1:0] sqrt_exp;
+	wire greater_test;
+
+	// calculate exponent
+	adder8 add8_exp1(.a(a_exp), .b(8'd 129), .sum(exp_denorm), .cin(1'b0)); // a_exp - 127
+	adder8 add8_exp2(.a({1'b0,exp_denorm[EXPONENTWIDTH-1:1]}), .b(8'd 127), .sum(sqrt_exp), .cin(1'b0)); //(exp_denorm >> 1) + 127
+
+	// square current_sqrt
+	mult_f32 square_current_sqrt(.a(sqrt_guess), .b(sqrt_guess), .m(square_sqrt_guess));
+
+	// set current bit of mantissa to 1
+	assign mant_guess = sqrt_mant | set_bit_high;
+	assign sqrt_guess = {1'b0, sqrt_exp, mant_guess};
+	assign greater_test = square_sqrt_guess > a;
+	assign square_sqrt_guess_mant = square_sqrt_guess[MANTISSAWIDTH-1:0];
+
+	initial begin 
+		state <= IDLE;
+	end 
+
+	// transition to the next state
+	always @(posedge clk) begin 
+		if (rst == 1) begin 
+			state <= STATE_TEST;
+			sqrt_mant <= 23'd0;
+			set_bit_high <= 23'h400000;  // most significant bit is set to 1
+		end else if ((a_exp == 0 || a_exp == 8'hff) && a_mant == 0) begin // Check for 0 or infinite
+			state <= STATE_COMPLETE;
+			sqrt_mant <= 23'd0;
+			set_bit_high <= 0;
+		end else if (a_exp == 8'hff && a_mant != 0) begin // Check for NaN
+			state <= STATE_COMPLETE;
+			sqrt_mant <= 23'h7fffff;
+			set_bit_high <= 0;
+		end else begin
+			state <= next_state;
+			sqrt_mant	<= next_sqrt_mant;
+			set_bit_high <= next_high;  
+		end
+	end 
+
+	// calculate next state and output
+	always @(*) begin
+		next_high = set_bit_high >> 1;  // shift right to set next bit high
+		case (state) 
+			IDLE: begin
+				rdy = 0;
+				next_state = IDLE;
+				next_sqrt_mant = sqrt_mant;
+			end 
+			STATE_TEST: begin 
+				rdy = 0;
+				// test if sqrt_guess is correct
+				if (square_sqrt_guess == a) begin 
+					next_state = STATE_COMPLETE;  // answer found 
+					next_sqrt_mant = mant_guess;
+				end 
+				// test if sqrt_guess is too big
+				else if (greater_test) begin 
+					next_state = STATE_TEST;     // continue testing
+					next_sqrt_mant = sqrt_mant;  // don't change mantissa 
+				end 
+				else if (set_bit_high == 23'd0) begin 
+					next_state = STATE_COMPLETE;
+					next_sqrt_mant = sqrt_mant;
+				end 
+				else begin 
+					next_state = STATE_TEST;  // current bit is correct, but continue testing
+					next_sqrt_mant = mant_guess;  
+				end 
+			end 
+			STATE_COMPLETE: begin 
+				rdy = 1;
+				next_state = STATE_COMPLETE;
+				next_sqrt_mant = sqrt_mant;
+			end 
+			default: begin  // shouldn't ever get here
+				rdy = 0;
+				next_state = STATE_TEST;
+				next_sqrt_mant = sqrt_mant;
+			end 
+		endcase
+	end 
+
+	assign sqrt = {a[WIDTH - 1], 
+					(a_exp == 8'hff) ? 8'hff : //Check for NaN or infinite
+					(a_exp == 0 && a_mant == 0) ? 8'd0 : //Check for 0
+					(a_exp < 127) ? {1'b0, sqrt_exp[EXPONENTWIDTH - 2:0]} : //exponent < 127 then null highest bit
+						{sqrt_exp[EXPONENTWIDTH - 1], sqrt_exp[EXPONENTWIDTH - 2:0]},
+					sqrt_mant};
+
+endmodule
