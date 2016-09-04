@@ -31,6 +31,7 @@ endmodule //divide_f
 
 /*
 *recip = 1/val
+*Calculates reciprocal by approximation
 *INPUTS:
 *	clk = clock input (trigger low to high)
 *	rst = reset input (trigger low to high)
@@ -124,3 +125,146 @@ module recip_f32(clk, rst, val, rdy, recip, recip_acc);
 	end
 
 endmodule //recip_f
+
+
+/*
+*recip = 1/val
+*INPUTS:
+*	clk = clock input (trigger low to high)
+*	rst = reset input (trigger low to high)
+*	val = value float
+*OUTPUTS:
+*	rdy = output is ready
+*	recip = reciprocal of value
+*	recip_acc = recip*acc - 1
+*/
+module recip_f32_bitbybit(clk, rst, val, rdy, recip, recip_acc);
+	localparam WIDTH = 32;
+	localparam EXPONENTWIDTH = 8;
+	localparam EXPONENTBIAS = 127;
+	localparam MANTISSAWIDTH = 23;
+	//cases
+	localparam STATE_INIT = 0;
+	localparam STATE_CALCEXP = 1;
+	localparam STATE_CALCMANT = 2;
+	localparam STATE_COMPLETE = 3;
+	//input declaration
+	input clk, rst;
+	input [WIDTH - 1:0] val;
+	wire val_sign = val[WIDTH - 1];
+	wire [EXPONENTWIDTH - 1:0] val_exp = val[WIDTH - 2:MANTISSAWIDTH];
+	wire [MANTISSAWIDTH - 1:0] val_mant = val[MANTISSAWIDTH - 1:0];
+	//output declaration
+	output rdy;
+	reg rdy;
+	output [WIDTH - 1:0] recip;
+	wire [WIDTH - 1:0] recip;
+	wire recip_sign = val_sign;
+	reg [EXPONENTWIDTH - 1:0] recip_exp;
+	reg [MANTISSAWIDTH - 1:0] recip_mant;
+	output [WIDTH - 1:0] recip_acc;
+	//=====Internal data=====
+	reg [1:0] state;
+	//Testing
+	wire [WIDTH - 1:0] recip_test;
+	wire [WIDTH - 1:0] recip_mult;
+	wire recip_acc_sign;
+	wire [EXPONENTWIDTH - 1:0] recip_acc_exp;
+	wire [MANTISSAWIDTH - 1:0] recip_acc_mant;
+	wire [WIDTH - 1:0] recip_acc = {recip_acc_sign, recip_acc_exp, recip_acc_mant};
+	wire [WIDTH - 1:0] test_one = 32'h3f800000;
+	//Calculate Exponent
+	wire [EXPONENTWIDTH - 1:0] recip_expinit;
+	wire [EXPONENTWIDTH - 1:0] recip_exponeless;
+	//Calculate Mantissa
+	reg [MANTISSAWIDTH:0] test_mant;
+	//code starts here
+
+	//Test that that next bit is valid
+	//val * recip_test - 1 = accuracy
+	assign recip_test = {1'b0, recip_exp, recip_mant | test_mant[MANTISSAWIDTH - 1:0]};
+	mult_f32 multf32_test(.a({1'b0,val[WIDTH - 2:0]}), .b(recip_test), .m(recip_mult));
+	add_f32 addf32_test(.a(recip_mult), .b({1'b1,test_one[WIDTH - 2:0]}),
+		.sum({recip_acc_sign,recip_acc_exp,recip_acc_mant}));
+
+	//Calculate Exponent
+	//~(val_exp - bias) + bias = ~val_exp + ~bias + bias
+	//TODO : determine when to subtract 1 (ex. 1/3 (0x40400000) = 0.3... (0x3eaaaaab))
+	adder8 add8_expinit(.a(~(val_exp)), .b(8'hFF), .cin(1'b0), .sum(recip_expinit));
+	adder8 add8_expreduce(.a(recip_exp), .b(~(8'd1)), .cin(1'b1), .sum(recip_exponeless));
+
+	always @(posedge clk or posedge rst) begin
+		if (rst) begin
+			// reset
+			rdy <= 0;
+			test_mant <= 0;
+			recip_exp <= 0;
+			recip_mant <= 0;
+			state <= STATE_INIT;
+		end
+		else if (clk) begin
+			case (state)
+				STATE_INIT : begin
+					rdy <= 0;
+					test_mant <= 24'h800000; //Set highest bit of test_mant to one
+					if (val_exp == 0 || val_exp == 8'hff) begin //Special Cases of zero or infinite
+						recip_exp <= ~val_exp; //result is opposite of input
+						recip_mant <= val_mant; //result is NaN if input is NaN
+						state <= STATE_COMPLETE;
+					end else begin
+						//Initial Values
+						recip_exp <= recip_expinit;
+						recip_mant <= 0;
+						state <= STATE_CALCEXP;
+					end
+				end
+				STATE_CALCEXP : begin
+					rdy <= 0;
+					//TEST EXPONENT
+					//if equal or last value
+					if (recip_acc_exp == 0 || test_mant == 0) begin
+						recip_exp <= recip_exp;
+						state <= STATE_COMPLETE;
+					//if greater reduce exponent
+					end else if (!recip_acc_sign) begin
+						recip_exp <= recip_exponeless;
+						state <= STATE_CALCMANT;
+					//if less then ignore
+					end else begin
+						recip_exp <= recip_exp;
+						state <= STATE_CALCMANT;
+					end
+				end
+				STATE_CALCMANT : begin
+					rdy <= 0;
+					test_mant <= {1'b0,test_mant[MANTISSAWIDTH:1]};
+					//TEST MANTISSA
+					//if equal or last value
+					if (recip_acc_exp == 0 || test_mant == 0) begin
+						recip_mant = recip_mant;
+						state <= STATE_COMPLETE;
+					//if greater ignore change
+					end else if (!recip_acc_sign) begin
+						recip_mant = recip_mant;
+						state <= STATE_CALCMANT;
+					//if less then apply change
+					end else begin
+						recip_mant = (recip_mant | test_mant);
+						state <= STATE_CALCMANT;
+					end
+				end
+				STATE_COMPLETE : begin
+					rdy <= 1;
+					state <= STATE_COMPLETE;
+				end
+				default : begin
+					rdy <= 0;
+					state <= STATE_COMPLETE;
+				end
+			endcase
+		end
+	end
+
+	assign recip = {recip_sign, recip_exp, recip_mant};
+
+endmodule //recip_f32_bitbybit
