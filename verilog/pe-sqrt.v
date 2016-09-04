@@ -273,7 +273,7 @@ module sqrt32_bit_by_bit(
 
 	// calculate exponent
 	adder8 add8_exp1(.a(a_exp), .b(8'd 129), .sum(exp_denorm), .cin(1'b0)); // a_exp - 127
-	adder8 add8_exp2(.a({1'b0,exp_denorm[EXPONENTWIDTH-1:1]}), .b(8'd 127), .sum(sqrt_exp), .cin(1'b0)); //(exp_denorm >> 1) + 127
+	adder8 add8_exp2(.a($signed(exp_denorm) >>> 1), .b(8'd 127), .sum(sqrt_exp), .cin(1'b0)); //(exp_denorm >> 1) + 127
 
 	// square current_sqrt
 	mult_f32 square_current_sqrt(.a(sqrt_guess), .b(sqrt_guess), .m(square_sqrt_guess));
@@ -281,7 +281,7 @@ module sqrt32_bit_by_bit(
 	// set current bit of mantissa to 1
 	assign mant_guess = sqrt_mant | set_bit_high;
 	assign sqrt_guess = {1'b0, sqrt_exp, mant_guess};
-	assign greater_test = square_sqrt_guess > a;
+	assign greater_test = square_sqrt_guess[WIDTH-2:0] > a[WIDTH-2:0];
 	assign square_sqrt_guess_mant = square_sqrt_guess[MANTISSAWIDTH-1:0];
 
 	initial begin 
@@ -321,7 +321,7 @@ module sqrt32_bit_by_bit(
 			STATE_TEST: begin 
 				rdy = 0;
 				// test if sqrt_guess is correct
-				if (square_sqrt_guess == a) begin 
+				if (square_sqrt_guess[WIDTH-2:0] == a[WIDTH-2:0]) begin 
 					next_state = STATE_COMPLETE;  // answer found 
 					next_sqrt_mant = mant_guess;
 				end 
