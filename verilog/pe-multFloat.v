@@ -11,43 +11,59 @@ OUTPUTS:
 	m = 32 bits
 */
 module mult_f32(a,b,m);
+	// definitions
+	localparam WIDTH = 32;
+	localparam EXPONENTWIDTH = 8;
+	localparam MANTISSAWIDTH = 23;
+	localparam MANTISSAOVERFLOW = 47;
+	localparam EXPONENTBIAS = 127;
 	// inputs 
-	input [31:0] a, b;
+	input [WIDTH - 1:0] a, b;
 	// outputs
-	output [31:0] m;
+	output [WIDTH - 1:0] m;
 	// internal wires
-	wire [31:0] mult;
-	wire [47:0] mantissa, mant_norm;
-	wire [23:0] mantA, mantB;
-	wire [7:0] ex, ex_sum;
+	wire [WIDTH - 1:0] mult;
+	wire [MANTISSAOVERFLOW:0] mult_mant, mult_mantnorm;
+	wire a_sign, b_sign;
+	wire [EXPONENTWIDTH - 1:0] a_exp, b_exp;
+	wire [MANTISSAWIDTH:0] a_mant, b_mant;
+	wire [EXPONENTWIDTH - 1:0] mult_exp, exp_sum;
 	wire norm, zero_test;
 
-	assign mantA[22:0] = a[22:0];	// mantissa of a
-	assign mantA[23] = 1;			// add leading 1
+	assign a_sign = a[WIDTH - 1];
+	assign a_exp = a[WIDTH - 2:MANTISSAWIDTH];
+	assign a_mant[MANTISSAWIDTH - 1:0] = a[MANTISSAWIDTH - 1:0];	// mantissa of a
+	assign a_mant[MANTISSAWIDTH] = 1; // add leading 1
 
-	assign mantB[22:0] = b[22:0];	// mantissa of b
-	assign mantB[23] = 1;			// add leading 1
+	assign b_sign = b[WIDTH - 1];
+	assign b_exp = b[WIDTH - 2:MANTISSAWIDTH];
+	assign b_mant[MANTISSAWIDTH - 1:0] = b[MANTISSAWIDTH - 1:0];	// mantissa of b
+	assign b_mant[MANTISSAWIDTH] = 1; // add leading 1
 	 
-	mult24 mult0(.a(mantA), .b(mantB), .mult(mantissa));	// multiply mantissas
+	mult24 mult0(.a(a_mant), .b(b_mant), .mult(mult_mant));	// multiply mantissas
 
-	// add exponents
-	adder8 add0(.a(a[30:23]), .b(b[30:23]), .cin(1'b0), .sum(ex_sum), .cout());
-	// subtract bias from exponent
-	adder8 sub0(.a(ex_sum), .b(8'h81), .cin(1'b0), .sum(ex), .cout());
+	// Calculate New Exponent
+	// (a_exp + b_exp - 127) = mult_exp
+	adder8 add0(.a(a_exp), .b(b_exp), .cin(1'b0), .sum(exp_sum), .cout());
+	adder8 sub0(.a(exp_sum), .b(~(8'd 127)), .cin(1'b1), .sum(mult_exp), .cout());
 
 	// if most significant bit of mantissa is 1, then the float needs to be normalized
-	assign norm = mantissa[47];
+	assign norm = mult_mant[MANTISSAOVERFLOW];
 	  
 	// if norm == 0, don't normalize float
 	// if norm == 1, shift mantissa to the left, add 1 to exponent
-	assign mant_norm = mantissa >> 1;
-	mux23 m0(.a(mantissa[45:23]), .b(mant_norm[45:23]), .switch(norm), .out(mult[22:0]));
-	adder8 add1(.a(ex), .b({7'd0,norm}), .cin(1'b0), .sum(mult[30:23]), .cout());	// normalize exponent
+	assign mult_mantnorm = mult_mant >> 1;
+	assign mult[MANTISSAWIDTH - 1:0] = (norm) ?
+											mult_mantnorm[MANTISSAOVERFLOW - 2:MANTISSAWIDTH] :
+											mult_mant[MANTISSAOVERFLOW - 2:MANTISSAWIDTH];
+	adder8 add1(.a(mult_exp), .b({7'd0,norm}), .cin(1'b0), .sum(mult[WIDTH - 2:MANTISSAWIDTH]), .cout());	// normalize exponent
 
-	xor calc_sign(mult[31], a[31], b[31]);	// handle sign
+	xor calc_sign(mult[WIDTH - 1], a_sign, b_sign);	// handle sign
 
 	// if either a or b is zero, output = zero
 	assign zero_test = ((a==32'd0) || (b==32'd0));
-	mux32 m1(.a(mult), .b(32'd0), .switch(zero_test), .out(m));	// if zero_test is 1, output is zero
+	assign m = (zero_test) ? 32'd0 : // if zero_test is 1, output is zero
+				(mult[WIDTH - 2:MANTISSAWIDTH] == 8'hFF) ? {mult[WIDTH - 1:MANTISSAWIDTH], 23'd0} : //test if result is infinite
+					mult;
 
 endmodule //mult_float

@@ -253,6 +253,7 @@ module sqrt32_bit_by_bit(
 	localparam WIDTH = 32;
 	localparam EXPONENTWIDTH = 8;
 	localparam MANTISSAWIDTH = 23;
+	localparam EXPONENTBIAS = 127;
 	localparam IDLE = 0;
 	localparam STATE_TEST = 1;
 	localparam STATE_COMPLETE = 2;
@@ -272,8 +273,8 @@ module sqrt32_bit_by_bit(
 	wire greater_test;
 
 	// calculate exponent
-	adder8 add8_exp1(.a(a_exp), .b(8'd 129), .sum(exp_denorm), .cin(1'b0)); // a_exp - 127
-	adder8 add8_exp2(.a($signed(exp_denorm) >>> 1), .b(8'd 127), .sum(sqrt_exp), .cin(1'b0)); //(exp_denorm >> 1) + 127
+	adder8 add8_exp1(.a(a_exp), .b(8'd 129), .sum(exp_denorm), .cin(1'b0)); // a_exp - EXPONENTBIAS
+	adder8 add8_exp2(.a($signed(exp_denorm) >>> 1), .b(8'd 127), .sum(sqrt_exp), .cin(1'b0)); //(exp_denorm >> 1) + EXPONENTBIAS
 
 	// square current_sqrt
 	mult_f32 square_current_sqrt(.a(sqrt_guess), .b(sqrt_guess), .m(square_sqrt_guess));
@@ -355,8 +356,8 @@ module sqrt32_bit_by_bit(
 	assign sqrt = {a[WIDTH - 1], 
 					(a_exp == 8'hff) ? 8'hff : //Check for NaN or infinite
 					(a_exp == 0 && a_mant == 0) ? 8'd0 : //Check for 0
-					(a_exp < 127) ? {1'b0, sqrt_exp[EXPONENTWIDTH - 2:0]} : //exponent < 127 then null highest bit
-						{sqrt_exp[EXPONENTWIDTH - 1], sqrt_exp[EXPONENTWIDTH - 2:0]},
+					(a_exp < EXPONENTBIAS) ? {1'b0, sqrt_exp[EXPONENTWIDTH - 2:0]} : //exponent < EXPONENTBIAS then null highest bit
+						sqrt_exp,
 					sqrt_mant};
 
 endmodule

@@ -5,8 +5,8 @@ module test;
 		# 0 rst = 1;
 		// sqrt(2) = 1.412135 (0x3fb504f3)
 		// clocked at 13 cycles
-		# 0	a = 32'h40000000;
-		# 0 sol = 32'h3fb504f3;
+		// # 0	a = 32'h40000000;
+		// # 0 sol = 32'h3fb504f3;
 		// sqrt(3) = 1.7320508 (0x3fddb3d7)
 		// clocked at 18 cycles
 		// # 0 a = 32'h40400000;
@@ -32,11 +32,11 @@ module test;
 		// # 0 a = 32'h3f800000;
 		// # 0 sol = 32'h3f800000;
 		// sqrt(-1) = -1 (0xbf800000)
-		// clocked at unknown cycles //TODO: WRONG MANTISSA. -1.9999999 (0xbfffffff)
+		// clocked at 2 cycles
 		// # 0 a = 32'hbf800000;
 		// # 0 sol = 32'hbf800000;
 		// sqrt(-2) = -1.412135 (0xbfb504f3)
-		// clocked at unknown cycles //TODO: WRONG MANTISSA. -1.9999999 (0xbfffffff)
+		// clocked at 13 cycles
 		// # 0 a = 32'hc0000000;
 		// # 0 sol = 32'hbfb504f3;
 		// sqrt(1.5) = 1.2247449 (0x3f9cc471)
@@ -44,19 +44,19 @@ module test;
 		// # 0 a = 32'h3fc00000;
 		// # 0 sol = 32'h3f9cc471;
 		// sqrt(0.128539674) = 0.35852430043 (0x3eb7907f)
-		// clocked at 9 cycles //TODO: Off by 1. 0.35852432 (0x3eb79080)
+		// clocked at 9 cycles. Off by 1. 0.35852432 (0x3eb79080)
 		// # 0 a = 32'h3e039fe8;
 		// # 0 sol = 32'h3eb7907f;
-		// sqrt(1.4E-45) = 3.7416575E-23 (0x1a34ef7a)
-		// clocked at unknown cycles //TODO: NEVER FINISHED. Stuck at 5.421011E-20 (0x1f800000)
-		// # 0 a = 32'h00000001;
-		// # 0 sol = 32'h1a34ef7a;
-		// sqrt(2.8E-45) = 5.2915026e-23 (0x1a7fe1a1)
-		// clocked at unknown cycles //TODO: NEVER FINISHED. Stuck at 5.421011E-20 (0x1f800000)
-		// # 0 a = 32'h00000002;
-		// # 0 sol = 32'h1a7fe1a1;
+		// sqrt(1.17549435E-38) = 1.0842022e-19 (0x20000000)
+		// clocked at 2 cycles
+		// # 0 a = 32'h00800000;
+		// # 0 sol = 32'h20000000;
+		// sqrt(1.1754945E-38) = 1.0842022e-19 (0x20000000)
+		// clocked at 2 cycles
+		// # 0 a = 32'h00800001;
+		// # 0 sol = 32'h20000000;
 		// sqrt(3.4028235E38) = 1.8446744E19 (0x5f800000)
-		// clocked at unknown cycles //TODO: Off by 1. 1.8446743E19 (0x5f7fffff)
+		// clocked at unknown cycles. Off by 1. 1.8446743E19 (0x5f7fffff)
 		// # 0 a = 32'h7f7fffff;
 		// # 0 sol = 32'h5f800000;
 		// sqrt(3.3.4028233E38) = 1.8446743E19 (0x5f7fffff)
