@@ -36,6 +36,10 @@ accumulator : sub-accumulator_tb.v sub-accumulator.v
 	iverilog -o test-accumulator sub-accumulator_tb.v sub-accumulator.v pe-add.v pe-addFloat.v
 	echo finish | vvp test-accumulator
 
+pipes : sub-pipe_tb.v sub-pipe.v
+	iverilog -o test-pipe sub-pipe_tb.v sub-pipe.v pe-add.v pe-square.v pe-multFloat.v pe-multiplier.v pe-float.v
+	echo finish | vvp test-pipe
+
 simpletest : test-simple_tb.v
 	iverilog -o test-simple test-simple_tb.v
 	echo finish | vvp test-simple
