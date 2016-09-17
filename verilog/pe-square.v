@@ -1,9 +1,9 @@
-module square( a, sqr);
+module square_f32( a, sqr);
 	//input declaration
-	input a;
+	input [31:0] a;
 	//output declaration
-	output sqr;
+	output [31:0] sqr;
 	//code starts here
-	mult32 M1(.a(a),.b(a),.prod(sqr));
+	mult_f32 M1(.a(a),.b(a),.m(sqr));
 
 endmodule //addbit
