@@ -11,7 +11,7 @@ module squareroot_f32(clk, rst, a, rdy, sqrt);
 	wire [WIDTH - 1:0] a, sqrt;
 	//code starts here
 
-sqrt32_bit_by_bit sqrtf32(.clk(clk), .rst(rst), .a(a), .rdy(rdy), .sqrt(sqrt));
+	sqrt32_bit_by_bit sqrtf32(.clk(clk), .rst(rst), .a(a), .rdy(rdy), .sqrt(sqrt));
 
 endmodule //squareroot_f32
 

@@ -32,13 +32,17 @@ sqrt : pe-sqrt_tb.v pe-sqrt.v pe-mean.v pe-divide.v pe-add.v pe-addFloat.v pe-mu
 	iverilog -o test-sqrt pe-sqrt_tb.v pe-sqrt.v pe-mean.v pe-divide.v pe-add.v pe-addFloat.v pe-multFloat.v pe-mux.v pe-multiplier.v
 	echo finish | vvp test-sqrt
 
-accumulator : sub-accumulator_tb.v sub-accumulator.v
+sub-accumulator : sub-accumulator_tb.v sub-accumulator.v
 	iverilog -o test-accumulator sub-accumulator_tb.v sub-accumulator.v pe-add.v pe-addFloat.v
 	echo finish | vvp test-accumulator
 
-pipes : sub-pipe_tb.v sub-pipe.v
+sub-pipes : sub-pipe_tb.v sub-pipe.v
 	iverilog -o test-pipe sub-pipe_tb.v sub-pipe.v pe-add.v pe-square.v pe-multFloat.v pe-multiplier.v pe-float.v
 	echo finish | vvp test-pipe
+
+sub-sqrt : sub-sqrt_tb.v sub-sqrt.v pe-sqrt.v pe-mean.v pe-divide.v pe-add.v pe-addFloat.v pe-multFloat.v pe-mux.v pe-multiplier.v
+	iverilog -o test-sub-sqrt sub-sqrt_tb.v sub-sqrt.v pe-sqrt.v pe-mean.v pe-divide.v pe-add.v pe-addFloat.v pe-multFloat.v pe-mux.v pe-multiplier.v
+	echo finish | vvp test-sub-sqrt
 
 simpletest : test-simple_tb.v
 	iverilog -o test-simple test-simple_tb.v
