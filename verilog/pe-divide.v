@@ -143,7 +143,7 @@ module recip_f32_bitbybit(clk, rst, val, rdy, recip, recip_acc);
 	localparam EXPONENTWIDTH = 8;
 	localparam EXPONENTBIAS = 127;
 	localparam MANTISSAWIDTH = 23;
-	//cases
+	//states
 	localparam STATE_INIT = 0;
 	localparam STATE_CALCEXP = 1;
 	localparam STATE_CALCMANT = 2;

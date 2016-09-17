@@ -32,6 +32,10 @@ sqrt : pe-sqrt_tb.v pe-sqrt.v pe-mean.v pe-divide.v pe-add.v pe-addFloat.v pe-mu
 	iverilog -o test-sqrt pe-sqrt_tb.v pe-sqrt.v pe-mean.v pe-divide.v pe-add.v pe-addFloat.v pe-multFloat.v pe-mux.v pe-multiplier.v
 	echo finish | vvp test-sqrt
 
+accumulator : sub-accumulator_tb.v sub-accumulator.v
+	iverilog -o test-accumulator sub-accumulator_tb.v sub-accumulator.v pe-add.v pe-addFloat.v
+	echo finish | vvp test-accumulator
+
 simpletest : test-simple_tb.v
 	iverilog -o test-simple test-simple_tb.v
 	echo finish | vvp test-simple
