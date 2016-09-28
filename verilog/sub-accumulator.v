@@ -1,5 +1,5 @@
 
-module accumulator(EN, clk, rst, vals, rdy, sum, in0, in1, sum0, sum1, sum2, sum3);
+module accumulator(EN, clk, rst, pre, vals, rdy, sum, in0, in1, sum0, sum1, sum2, sum3);
 	parameter FLOAT=0; //Define either FLOAT or INT Adders
 	parameter WIDTH=16; //quantity of inputs
 	parameter LAYERS=4; //How many addition iterations occur = log_2(WIDTH)
@@ -10,7 +10,7 @@ module accumulator(EN, clk, rst, vals, rdy, sum, in0, in1, sum0, sum1, sum2, sum
 	localparam STATE_CALC = 1;
 	localparam STATE_COMPLETE = 2;
 	//input declaration
-	input EN, clk, rst;
+	input EN, clk, rst, pre;
 	input [VARWIDTH*WIDTH - 1:0] vals;
 	wire [VARWIDTH - 1:0] in_vals [0:WIDTH-1];
 	generate
