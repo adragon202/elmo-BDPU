@@ -1,6 +1,6 @@
 
 
-module pipes_sumsquare(EN, vals0, vals1, pipeout);
+module pipes_diffsquare(EN, vals0, vals1, pipeout);
 	parameter WIDTH = 16; //size of each vals vector
 	//local parameters
 	localparam VARWIDTH = 32;
@@ -28,15 +28,15 @@ module pipes_sumsquare(EN, vals0, vals1, pipeout);
 		end
 	endgenerate
 	//internal data types
-	wire [VARWIDTH-1:0] sumsquare [0:WIDTH-1];
+	wire [VARWIDTH-1:0] diffsquare [0:WIDTH-1];
 	//code begins here
 
 	generate
 		for (count = 0; count < WIDTH; count = count + 1)
-		begin:SumSquared_generator
-			sumsquared32 sumsquare32_Pipe(.a(in_vals0[count]),
+		begin:diffsquared_generator
+			diffsquared32 diffsquare32_Pipe(.a(in_vals0[count]),
 											.b(in_vals1[count]),
-											.out(sumsquare[count]));
+											.out(diffsquare[count]));
 		end
 	endgenerate
 
@@ -45,7 +45,7 @@ module pipes_sumsquare(EN, vals0, vals1, pipeout);
 		if (EN) begin //EN high enable output
 			for (i = 0; i < WIDTH; i = i + 1)
 			begin
-				out_pipe[i] <= sumsquare[i];
+				out_pipe[i] <= diffsquare[i];
 			end
 		end else begin //EN low disable output
 			for (i = 0; i < WIDTH; i = i + 1)
@@ -55,10 +55,10 @@ module pipes_sumsquare(EN, vals0, vals1, pipeout);
 		end
 	end
 
-endmodule //end pipes_sumsquare
+endmodule //end pipes_diffsquare
 
 
-module sumsquared32(a, b, out);
+module diffsquared32(a, b, out);
 	localparam VARWIDTH = 32;
 	//input declarations
 	input [VARWIDTH-1:0] a, b;
@@ -71,9 +71,9 @@ module sumsquared32(a, b, out);
 	wire [VARWIDTH-1:0] square;
 	//code begins here
 
-	adder32 add32_inputs(.a(a), .b(b), .cin(1'b0), .sum(sum));
+	adder32 add32_inputs(.a(a), .b(~b), .cin(1'b1), .sum(sum));
 	int2float32 i2f32_sum(.a(sum), .b(float));
 	square_f32 squaref32_float(.a(float), .sqr(square));
 	assign out = square;
 
-endmodule //end sum_squared
+endmodule //end diffsquared32

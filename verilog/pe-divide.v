@@ -24,7 +24,7 @@ module divide_f32(clk, rst, num, den, rdy, quo);
 	wire [WIDTH - 1:0] denrecip;
 	//code starts here
 
-	recip_f32 rec_1(.clk(clk), .rst(rst), .val(den), .rdy(rdy), .recip(denrecip));
+	recip_f32_approx rec_1(.clk(clk), .rst(rst), .val(den), .rdy(rdy), .recip(denrecip));
 	mult_f32 mult_1(.a(num), .b(denrecip), .m(quo));
 	
 endmodule //divide_f
@@ -41,7 +41,7 @@ endmodule //divide_f
 *	recip = reciprocal of value
 *	recip_acc = recip*acc - 1
 */
-module recip_f32(clk, rst, val, rdy, recip, recip_acc);
+module recip_f32_approx(clk, rst, val, rdy, recip, recip_acc);
 	localparam WIDTH = 32;
 	localparam EXPONENTWIDTH = 8;
 	localparam MANTISSAWIDTH = 23;
@@ -124,7 +124,7 @@ module recip_f32(clk, rst, val, rdy, recip, recip_acc);
 		end
 	end
 
-endmodule //recip_f
+endmodule //recip_f32_approx
 
 
 /*

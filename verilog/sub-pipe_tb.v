@@ -49,7 +49,7 @@ module test;
 	reg [31:0] rslt_expected [0:15];
 	wire [31:0] rslt [0:15];
 
-	pipes_sumsquare pipes_1(.EN(en),
+	pipes_diffsquare pipes_1(.EN(en),
 		.vals0({a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],a[8],a[9],a[10],a[11],a[12],a[13],a[14],a[15]}), 
 		.vals1({b[0],b[1],b[2],b[3],b[4],b[5],b[6],b[7],b[8],b[9],b[10],b[11],b[12],b[13],b[14],b[15]}), 
 		.pipeout({rslt[0],rslt[1],rslt[2],rslt[3],rslt[4],rslt[5],rslt[6],rslt[7],rslt[8],rslt[9],rslt[10],rslt[11],rslt[12],rslt[13],rslt[14],rslt[15]})
