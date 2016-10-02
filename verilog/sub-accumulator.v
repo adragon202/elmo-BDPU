@@ -40,14 +40,18 @@ module accumulator(EN, clk, rst, pre, vals, rdy, sum, in0, in1, sum0, sum1, sum2
 	wire [VARWIDTH-1:0] sum3 = add_sum[3];
 	//internal data types
 	reg [1:0] state;
+	reg [VARWIDTH-1:0] sum_preserve;
 	reg [VARWIDTH-1:0] add_in [0:WIDTH-1];
+	wire [VARWIDTH-1:0] sum_total;
 	wire [VARWIDTH-1:0] add_sum [0:(WIDTH/2)-1];
 	reg [7:0] itercount;
 	wire [7:0] itercount_next;
 	//beginning of code
 
+	// Generate Adders
 	generate
-		// genvar count;
+		// Generate Adder Layers
+		// genvar count; //see in_vals_assignment
 		for (count = 0; count < WIDTH; count = count + 2)
 		begin:add_modules
 			if (FLOAT) begin
@@ -62,8 +66,21 @@ module accumulator(EN, clk, rst, pre, vals, rdy, sum, in0, in1, sum0, sum1, sum2
 									.cout());
 			end
 		end
+		// Generate Preservation Adder
+		if (FLOAT) begin
+			add_f32 addf32_preserve(.a(add_sum[0]),
+									.b(sum_preserve),
+									.sum(sum_total));
+		end else begin
+			adder32 add32_preserve(.a(add_sum[0]),
+									.b(sum_preserve),
+									.cin(1'b0),
+									.sum(sum_total)
+									.cout());
+		end
 	endgenerate
 
+	// Iteration Counter
 	adder8 adder8_iter(.a(itercount), .b(8'd0), .cin(1'b1), .sum(itercount_next));
 
 	integer i;
@@ -79,6 +96,11 @@ module accumulator(EN, clk, rst, pre, vals, rdy, sum, in0, in1, sum0, sum1, sum2
 				add_in[i] <= 0;
 			end
 			state <= STATE_INIT;
+			if (pre) begin
+				sum_preserve <= sum_total;
+			end else begin
+				sum_preserve <= 0;
+			end
 		end
 		else if (clk == 1) begin
 			if (EN == 1) begin
@@ -115,7 +137,7 @@ module accumulator(EN, clk, rst, pre, vals, rdy, sum, in0, in1, sum0, sum1, sum2
 					end
 					STATE_COMPLETE : begin
 						rdy <= 1;
-						sum <= add_sum[0];
+						sum <= sum_total;
 						state <= STATE_COMPLETE;
 					end
 					default : begin
