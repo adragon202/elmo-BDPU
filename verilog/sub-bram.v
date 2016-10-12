@@ -2,7 +2,7 @@
 module ram( clk, add, data_in, data_out, cs, we, oe);
 	parameter DATA_WIDTH = 32;  // number of bits in the output
 	parameter ADD_WIDTH = 10;   // number of bits in the address 
-	parameter RAM_SIZE = 1 << ADD_WIDTH;  // ram size
+	localparam RAM_SIZE = 1 << ADD_WIDTH;  // ram size
 
 	//input declaration
 	input clk;
