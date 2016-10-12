@@ -2,7 +2,7 @@
 module accumulator(EN, clk, rst, pre, vals, rdy, sum, in0, in1, sum0, sum1, sum2, sum3);
 	parameter FLOAT=0; //Define either FLOAT or INT Adders
 	parameter WIDTH=16; //quantity of inputs
-	parameter LAYERS=4; //How many addition iterations occur = log_2(WIDTH) //TODO: Replace with localparam and $clog2()
+	localparam LAYERS=$clog2(WIDTH); //How many addition iterations occur = log_2(WIDTH)
 	//local parameters
 	localparam VARWIDTH=32; //size of inputs
 	//States
@@ -75,7 +75,7 @@ module accumulator(EN, clk, rst, pre, vals, rdy, sum, in0, in1, sum0, sum1, sum2
 			adder32 add32_preserve(.a(add_sum[0]),
 									.b(sum_preserve),
 									.cin(1'b0),
-									.sum(sum_total)
+									.sum(sum_total),
 									.cout());
 		end
 	endgenerate
