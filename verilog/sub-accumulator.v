@@ -2,7 +2,7 @@
 module accumulator(EN, clk, rst, pre, vals, rdy, sum, in0, in1, sum0, sum1, sum2, sum3);
 	parameter FLOAT=0; //Define either FLOAT or INT Adders
 	parameter WIDTH=16; //quantity of inputs
-	parameter LAYERS=4; //How many addition iterations occur = log_2(WIDTH)
+	parameter LAYERS=4; //How many addition iterations occur = log_2(WIDTH) //TODO: Replace with localparam and $clog2()
 	//local parameters
 	localparam VARWIDTH=32; //size of inputs
 	//States
