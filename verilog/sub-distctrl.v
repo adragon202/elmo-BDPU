@@ -31,7 +31,7 @@ module dist_control_unit(NUM_OF_VECTORS, VECTOR_WIDTH, clk, STARTCALC, RDY_Pipe,
 	output reg EN_Acc;   // when high, accumlator does its thing
 	output reg EN_Sqrt;  // flag enables the sqrt
 	output [2:0] ADDR_Bram; //TODO, Address of next vector value to load
-	output [2:0] FLAG_Bram; //cs, we, oe
+	output [3:0] FLAG_Bram; //cs, we, oe, (vec0 or vec1)
 	// internal signals
 	reg [2:0] state, next_state;
 	reg vector_count;  // increment counter each time a vector has been processed
