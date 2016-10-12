@@ -1,5 +1,5 @@
 module squareroot(EN, clk, rst, a, rdy, sqrt);
-	localparam WIDTH = 32;
+	parameter WIDTH = 32;
 	//input declaration
 	input EN, clk, rst;
 	input [WIDTH - 1:0] a;

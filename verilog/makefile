@@ -48,5 +48,9 @@ simpletest : test-simple_tb.v
 	iverilog -o test-simple test-simple_tb.v
 	echo finish | vvp test-simple
 
+distcalc : sub-dist_tb.v sub-distcalc.v sub-distctrl.v
+	iverilog -o test-dist sub-dist_tb.v sub-distcalc.v sub-distctrl.v sub-bram.v sub-accumulator.v sub-pipe.v sub-sqrt.v pe-square.v pe-sqrt.v pe-multFloat.v pe-float.v pe-addFloat.v pe-add.v
+	echo finish | vvp test-dist
+
 clean : 
 	rm test-*

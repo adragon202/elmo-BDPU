@@ -28,9 +28,20 @@ module distcalc_euclid(clk, EN_Pipe, EN_Acc, EN_Sqrt, RST_Acc, RST_Sqrt, PRE_Acc
 	//Code
 
 	//Modules
-	pipes_diffsquare #(.WIDTH(PIPEWIDTH)) pipes(.EN(EN_Pipe), .vals0(in_pipe0), .vals1(in_pipe1), pipeout(out_pipe));
-	accumulator #(.FLOAT(1), .WIDTH(PIPEWIDTH), .LAYERS($clog2(PIPEWIDTH))) accum(.EN(EN_Acc), .clk(clk), .rst(RST_Acc), .pre(PRE_Acc), .vals(in_acc), .rdy(RDY_Acc), .sum(out_acc))
-	squareroot #(.WIDTH(VARWIDTH)) sqrt(.EN(EN_Sqrt), .clk(clk), .rst(RST_Sqrt), .a(in_sqrt), .rdy(RDY_Sqrt), .sqrt(out_sqrt));
+	pipes_diffsquare #(.WIDTH(PIPEWIDTH)) pipes(
+		.EN(EN_Pipe),
+		.vals0(in_pipe0), .vals1(in_pipe1),
+		.pipeout(out_pipe));
+	accumulator #(.FLOAT(1), .WIDTH(PIPEWIDTH)) accum(
+		.EN(EN_Acc), .clk(clk), .rst(RST_Acc), .pre(PRE_Acc),
+		.vals(in_acc),
+		.rdy(RDY_Acc),
+		.sum(out_acc));
+	squareroot #(.WIDTH(VARWIDTH)) sqrt(
+		.EN(EN_Sqrt), .clk(clk), .rst(RST_Sqrt),
+		.a(in_sqrt),
+		.rdy(RDY_Sqrt),
+		.sqrt(out_sqrt));
 
 	//Default Assignments
 	assign in_pipe0 = invec0;
