@@ -13,10 +13,10 @@ module distcalc_euclid(clk, EN_Pipe, EN_Acc, EN_Sqrt, RST_Acc, RST_Sqrt, PRE_Acc
 	input [VARWIDTH*PIPEWIDTH-1:0]invec0;
 	input [VARWIDTH*PIPEWIDTH-1:0]invec1;
 	//Outputs
-	output RDY_Pipe;
+	output reg RDY_Pipe;
 	output RDY_Acc;
 	output RDY_Sqrt;
-	output [VARWIDTH-1:0]outval;
+	output reg [VARWIDTH-1:0]outval;
 	//Internal Data Types
 	wire [VARWIDTH*PIPEWIDTH-1:0]in_pipe0;
 	wire [VARWIDTH*PIPEWIDTH-1:0]in_pipe1;
