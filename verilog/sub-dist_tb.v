@@ -31,7 +31,7 @@ module test;
 		end
 	endgenerate
 
-	ram #(.DATA_WIDTH(varWIDTH), .ADD_WIDTH(#clog2(vecWIDTH))) bram(
+	ram #(.DATA_WIDTH(varWIDTH), .ADD_WIDTH(clog2(vecWIDTH))) bram(
 		.clk(clk),
 		.add(addr_b),
 		.data_in(),
