@@ -56,11 +56,13 @@ module distcalc_euclid(clk, EN_Pipe, EN_Acc, EN_Sqrt, RST_Acc, RST_Sqrt, PRE_Acc
 			RDY_Pipe <= 1;
 			in_acc <= in_acc;
 		end
-		if (EN_Acc) begin
+
+		if (RDY_Acc) begin
 			in_sqrt <= out_acc;
 		end else begin
 			in_sqrt <= in_sqrt;
 		end
+
 		if (RDY_Sqrt) begin
 			outval <= out_sqrt;
 		end else begin
