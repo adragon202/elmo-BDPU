@@ -20,7 +20,7 @@ module pipes_diffsquare(EN, vals0, vals1, pipeout);
 	//output declaration
 	output [VARWIDTH*WIDTH-1:0] pipeout;
 	wire [VARWIDTH*WIDTH-1:0] pipeout; 
-	reg [VARWIDTH-1:0] out_pipe [0:WIDTH-1]; 
+	wire [VARWIDTH-1:0] out_pipe [0:WIDTH-1]; 
 	generate
 		for (count = WIDTH; count > 0; count = count - 1)
 		begin:pipeout_assignment
@@ -40,20 +40,13 @@ module pipes_diffsquare(EN, vals0, vals1, pipeout);
 		end
 	endgenerate
 
-	integer i;
-	always @(posedge EN or negedge EN) begin
-		if (EN) begin //EN high enable output
-			for (i = 0; i < WIDTH; i = i + 1)
-			begin
-				out_pipe[i] <= diffsquare[i];
-			end
-		end else begin //EN low disable output
-			for (i = 0; i < WIDTH; i = i + 1)
-			begin
-				out_pipe[i] <= 0;
-			end
+	generate
+		genvar i;
+		for (i = 0; i < WIDTH; i = i + 1)
+		begin:output_assignment
+			assign out_pipe[i] = (EN) ? diffsquare[i]:0;
 		end
-	end
+	endgenerate
 
 endmodule //end pipes_diffsquare
 

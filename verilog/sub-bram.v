@@ -1,12 +1,13 @@
 
-module ram(clk, add, data_in, data_out, cs, we, oe);
+module BRAM(clk, add, data_in, data_out, cs, we, oe);
 // parameters
 parameter varWIDTH = 32;    // number of bits in a word
 parameter ADD_WIDTH = 10;   // number of bits in the address
 parameter PIPE_WIDTH = 16;  // number of words in the output
 
 // inputs 
-input clk,cs,we,oe;
+input clk,cs,we;
+input [PIPE_WIDTH-1:0] oe;
 input [varWIDTH-1:0] data_in;
 input [ADD_WIDTH-1:0] add;
 
@@ -29,21 +30,22 @@ generate
 	genvar i;
 	for (i = PIPE_WIDTH; i > 0; i = i - 1)
 	begin:identifier
-		BRAM #(.varWIDTH(varWIDTH), .ADD_WIDTH(ADD_WIDTH-$clog2(PIPE_WIDTH))) bram_vector(
+		ram #(.varWIDTH(varWIDTH), .ADD_WIDTH(ADD_WIDTH-$clog2(PIPE_WIDTH))) bram_vector(
 		.clk(clk),
 		.add(add_eff),
 		.data_in(data_in),
 		.data_out(data_out[i*varWIDTH-1 -: varWIDTH]), 
-		.cs(cs), .we(write_en[i-1]), .oe(oe));
+		.cs(cs), .we(write_en[i-1]), .oe(oe[i-1]));
 	end
 endgenerate
 
 endmodule
 
-module BRAM(clk, add, data_in, data_out, cs, we, oe);
+module ram(clk, add, data_in, data_out, cs, we, oe);
 	parameter varWIDTH = 32;  // number of bits in the output
 	parameter ADD_WIDTH = 10;   // number of bits in the address
-	localparam RAM_SIZE = 1 << ADD_WIDTH;  // ram size
+	parameter FILENAME = "";
+	localparam [63:0] RAM_SIZE = 1 << ADD_WIDTH;  // ram size
 
 	//input declaration
 	input clk;
@@ -60,6 +62,11 @@ module BRAM(clk, add, data_in, data_out, cs, we, oe);
 	reg [varWIDTH-1:0] memory [0:RAM_SIZE-1];
 
 	//code starts here
+	// initalize memory from file
+	initial begin
+		if (FILENAME != "") 
+  		$readmemh(FILENAME, memory);
+  end
 
 	// handle writing to RAM
 	always @(posedge clk) begin
@@ -71,6 +78,8 @@ module BRAM(clk, add, data_in, data_out, cs, we, oe);
 	always @(posedge clk) begin
 		if (cs && !we && oe) 
 			data_out <= memory[add];
+		else 
+			data_out <= {varWIDTH{1'b0}};
 	end
 
 endmodule //ram

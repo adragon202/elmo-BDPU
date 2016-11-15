@@ -13,7 +13,7 @@ module squareroot(EN, clk, rst, a, rdy, sqrt);
 	wire [WIDTH - 1:0] sqrt_internal;
 	//code starts here
 
-	squareroot_f32 sqrtf32(.clk(clk), .rst(rst_internal), .a(a), .rdy(rdy), .sqrt(sqrt_internal));
+	squareroot_f32 sqrtf32(.clk(clk), .EN(EN), .rst(rst_internal), .a(a), .rdy(rdy), .sqrt(sqrt_internal));
 	always @(*) begin
 		if (EN) begin
 			rst_internal <= 0;
