@@ -1,7 +1,7 @@
-module squareroot_f32(clk, rst, a, rdy, sqrt);
+module squareroot_f32(clk, rst, EN, a, rdy, sqrt);
 	localparam WIDTH = 32;
 	//input declaration
-	input clk, rst;
+	input clk, rst, EN;
 	input [WIDTH - 1:0] a;
 	//output declaration
 	output rdy;
@@ -11,7 +11,7 @@ module squareroot_f32(clk, rst, a, rdy, sqrt);
 	wire [WIDTH - 1:0] a, sqrt;
 	//code starts here
 
-	sqrt32_bit_by_bit sqrtf32(.clk(clk), .rst(rst), .a(a), .rdy(rdy), .sqrt(sqrt));
+	sqrt32_bit_by_bit sqrtf32(.clk(clk), .rst(rst), .EN(EN), .a(a), .rdy(rdy), .sqrt(sqrt));
 
 endmodule //squareroot_f32
 
@@ -159,6 +159,7 @@ endmodule //squareroot_f32_approximation
 module sqrt32_bit_by_bit(
 	input clk, 							 // clock signal	
 	input rst, 							 // reset signal
+	input EN,
 	input [WIDTH-1:0] a,     // input floating number 
 	output reg rdy, 				 // flag signals data is ready
 	output [WIDTH-1:0] sqrt  // square root of input a
@@ -209,19 +210,22 @@ module sqrt32_bit_by_bit(
 			state <= STATE_TEST;
 			sqrt_mant <= 23'd0;
 			set_bit_high <= 23'h400000;  // most significant bit is set to 1
-		end else if ((a_exp == 0 || a_exp == 8'hff) && a_mant == 0) begin // Check for 0 or infinite
-			state <= STATE_COMPLETE;
-			sqrt_mant <= 23'd0;
-			set_bit_high <= 0;
+		end 
+		else if (EN) begin 
+			if ((a_exp == 0 || a_exp == 8'hff) && a_mant == 0) begin // Check for 0 or infinite
+				state <= STATE_COMPLETE;
+				sqrt_mant <= 23'd0;
+				set_bit_high <= 0;
 		end else if (a_exp == 8'hff && a_mant != 0) begin // Check for NaN
-			state <= STATE_COMPLETE;
-			sqrt_mant <= 23'h7fffff;
-			set_bit_high <= 0;
+				state <= STATE_COMPLETE;
+				sqrt_mant <= 23'h7fffff;
+				set_bit_high <= 0;
 		end else begin
-			state <= next_state;
-			sqrt_mant	<= next_sqrt_mant;
-			set_bit_high <= next_high;  
+				state <= next_state;
+				sqrt_mant	<= next_sqrt_mant;
+				set_bit_high <= next_high;  
 		end
+		end 
 	end 
 
 	// calculate next state and output
