@@ -10,8 +10,12 @@
 // Definitions
 #define FALSE 0
 #define false FALSE
-#define TRUE !FALSE
+#define TRUE 1
 #define true TRUE
+#define FLAG_FPGA_DATARDY 1		// data ready from FPGA
+#define FLAG_ARM_SORTED 2		// data sorted on ARM
+#define FLAG_FPGA_COMPLETE 4	// dataset complete from FPGA
+#define FLAG_FPGA_INIT 8		// new dataset from FPGA is ready
 
 // Structs
 typedef struct
@@ -32,45 +36,57 @@ void main(void)
 	int maxlength;
 	int flag = false;
 	int datasetflag = false;
+	//Registers for for FPGA I/O
+	//TODO
+	u32* lengthreg		= NULL; //used to set maxlength
+	u32* indexreg		= NULL; //used to set tmpindex
+	u32* distancereg	= NULL; //used to set tmpdistance
+	u32* flagreg		= NULL; //used to pass flags between ARM and FPGA
 
-	while(1)
+	while(true)
 	{
+		/************************************************************************/
+		/***********************Initialize Working Dataset***********************/
+		/************************************************************************/
 		// Poll on FPGA flag for new dataset
 		flag = false;
 		while (!flag){
-			//TODO
-			flag = false;
+			flag = *flagreg & FLAG_FPGA_INIT;
 		}
 		// Get N (length of array)
-		//TODO
-		maxlength = 0;
+		maxlength = *lengthreg;
 		// Initialize Array
 		dist distanceArr[maxlength];
 		curlength = dist_init(&distanceArr, maxlength);
 
+
+		/************************************************************************/
+		/**************************Get and Sort Dataset**************************/
+		/************************************************************************/
 		datasetflag = false;
 		while(!datasetflag)
 		{
 			// Poll on FPGA flag for new value
 			flag = false;
 			while (!flag){
-				//TODO
-				flag = false;
+				flag = *flagreg & FLAG_FPGA_DATARDY;
 			}
 
 			// Get and insert new value
-			//TODO
-			tmpval.index = 0;
-			//TODO
-			tmpval.distance = 0;
+			tmpval.index = *indexreg;
+			tmpval.distance = *distancereg;
 			curlength = dist_insert(&distanceArr, maxlength, curlength, tmpval);
 
 			// Send flag to FPGA for new value
-			//TODO
+			*flagreg = *flagreg & !FLAG_FPGA_DATARDY; //unset dataready
+			*flagreg = *flagreg | FLAG_ARM_SORTED; //set data sorted
 			// Check for flag from FPGA that dataset is complete
-			// TODO
-			datasetflag = false;
+			datasetflag = *flagreg & FLAG_FPGA_COMPLETE;
 		}
+
+		/************************************************************************/
+		/***********************Make Data Available for PC***********************/
+		/************************************************************************/
 		// Dump array into DDR3
 		// TODO
 	}
