@@ -102,16 +102,6 @@ module int2float64(a, b);
 	assign b = {a[WIDTH - 1], exp, mant};
 endmodule //int2float64
 
-module float2int64(a, b);
-	input [63:0] a;
-	output [63:0] b;
-
-	reg [62:0] conv;
-
-	assign b = {a[63], conv};
-
-endmodule //float2int64
-
 /*
 *Check for highest power of 2 and return just that value, ignore sign
 *INPUTS:
@@ -234,16 +224,6 @@ module int2float32(a, b);
 	assign b = {a[WIDTH - 1], exp, mant};
 
 endmodule //int2float32
-
-module float2int32(a, b);
-	input [31:0] a;
-	output [31:0] b;
-
-	reg [30:0] conv;
-
-	assign b = {a[31], conv};
-
-endmodule //float2int32
 
 /*
 *Check for highest power of 2 and return just that value, ignore sign
