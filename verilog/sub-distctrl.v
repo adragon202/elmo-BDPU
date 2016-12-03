@@ -1,17 +1,36 @@
 
-// process:
-	// process first vector
-		// calculate address
-		// get first set of data from RAM
-		// send data to pipes
-		// wait until the accumulator is done
-		// reset accumulator, increment index count
-		// repeat until each index of the vector has been processed
-	// output accumulator value to RAM
-	// repeat until all vectors have been processed
+/*process:
+*	process first vector
+*		calculate address
+*		get first set of data from RAM
+*		send data to pipes
+*		wait until the accumulator is done
+*		reset accumulator, increment index count
+*		repeat until each index of the vector has been processed
+*	output accumulator value to RAM
+*	repeat until all vectors have been processed
+*
+*STATE INIT: do nothing
+*STATE 0:
+*	reset accumulator (no preserve)
+*	calculate data address
+*STATE 1:
+*	wait until the accumulator is ready
+*STATE 2:
+*	increment index counter
+*	reset accumulator (with preserve)
+*	if end of vector
+*		go to STATE 3
+*	else
+*		calculate data address
+*		go to STATE 1
+*STATE 3:
+*	send accumulator to square root
+*	wait for square root
+*/
 module dist_control_unit(VECTOR_WIDTH, clk, STARTCALC, RDY_Acc, RDY_Sqrt, EN_Pipe, EN_Acc, RST_Acc, RST_P, PRE_Acc, EN_Sqrt, RST_Sqrt, ADDR_RAM);
 	parameter pipeWIDTH = 16;
-  parameter ADD_WIDTH = 10;   // number of bits in the address
+	parameter ADD_WIDTH = 10;   // number of bits in the address
 	// STATE definitions
 	localparam STATE_IDLE = 0;
 	localparam STATE_HARD_RESET = 1;
@@ -162,21 +181,3 @@ module dist_control_unit(VECTOR_WIDTH, clk, STARTCALC, RDY_Acc, RDY_Sqrt, EN_Pip
 	end
 
 endmodule // dist_control_unit
-
-// STATE INIT: do nothing
-// STATE 0:
-	// reset accumulator (no preserve)
-	// calculate data address
-// STATE 1:
-	// wait until the accumulator is ready
-// STATE 2:
-	// increment index counter
-	// reset accumulator (with preserve)
-	// if end of vector
-		// go to STATE 3
-	// else
-		// calculate data address
-		// go to STATE 1
-// STATE 3:
-	// send accumulator to square root
-	// wait for square root

@@ -21,41 +21,41 @@ module distance_test;
 	reg load_vectors, mem_rst;
 	
 	initial begin
-            // Load vectors into Bram
-            #0 clk = 1'b0;
-            #0 mem_rst = 1'b1;
-            
-            #35 mem_rst = 1'b0;
+			// Load vectors into Bram
+			#0 clk = 1'b0;
+			#0 mem_rst = 1'b1;
+			
+			#35 mem_rst = 1'b0;
 
-            #10 START = 1'b1;
-            #35 START = 1'b0;
-            
-            // TODO: initiate control unit and generate output
-        end
-        
-    always begin 
-        #5 clk = !clk; 
-    end 
+			#10 START = 1'b1;
+			#35 START = 1'b0;
+			
+			// TODO: initiate control unit and generate output
+		end
+		
+	always begin 
+		#5 clk = !clk; 
+	end 
 
-    assign bram_add = (loader_done) ? ctrl_add:loader_add;
+	assign bram_add = (loader_done) ? ctrl_add:loader_add;
 
-    reg32 vector_count(.clk(clk), .en(data_flags[0]), .reset(1'b0), .data(dram_out), .q(vecCOUNT));
-    reg32 vector_width(.clk(clk), .en(data_flags[1]), .reset(1'b0), .data(dram_out), .q(vecWIDTH));
-    reg32 vector_index(.clk(clk), .en(data_flags[2]), .reset(1'b0), .data(dram_out), .q(vecINDEX));
+	reg32 vector_count(.clk(clk), .en(data_flags[0]), .reset(1'b0), .data(dram_out), .q(vecCOUNT));
+	reg32 vector_width(.clk(clk), .en(data_flags[1]), .reset(1'b0), .data(dram_out), .q(vecWIDTH));
+	reg32 vector_index(.clk(clk), .en(data_flags[2]), .reset(1'b0), .data(dram_out), .q(vecINDEX));
 
-    // MEMORY CONTROLLER 
+	// MEMORY CONTROLLER 
    vec_loader #(.ADD_WIDTH(ADD_WIDTH), .HEADER_LENGTH(HEADER_LENGTH)) vec_ctrl(
-    .clk(clk), 
-    .rst(mem_rst), 
-    .en(START), 
-    .sqrt_rdy(rdy_s),
-    .data_flags(data_flags),
-    .VECTOR_WIDTH(vecWIDTH),
-    .dram_add(dram_add),
-    .bram_add(loader_add), 
-    .dist_add(dist_add),
-    .done(loader_done)); 
-    
+	.clk(clk), 
+	.rst(mem_rst), 
+	.en(START), 
+	.sqrt_rdy(rdy_s),
+	.data_flags(data_flags),
+	.VECTOR_WIDTH(vecWIDTH),
+	.dram_add(dram_add),
+	.bram_add(loader_add), 
+	.dist_add(dist_add),
+	.done(loader_done)); 
+	
 	// create "DRAM" 
 	ram #(.varWIDTH(varWIDTH), .ADD_WIDTH(ADD_WIDTH), .FILENAME("C:\\Users\\mcowl_000\\Desktop\\GitStuff\\Elmo\\datasets\\simple.list")) dram(
 		.clk(!clk),
@@ -107,4 +107,4 @@ module distance_test;
 		$monitor("%g\t\n",
 				$time);
 
-endmodule //test
+endmodule //end distance_test

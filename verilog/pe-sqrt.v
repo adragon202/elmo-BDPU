@@ -216,15 +216,15 @@ module sqrt32_bit_by_bit(
 				state <= STATE_COMPLETE;
 				sqrt_mant <= 23'd0;
 				set_bit_high <= 0;
-		end else if (a_exp == 8'hff && a_mant != 0) begin // Check for NaN
+			end else if (a_exp == 8'hff && a_mant != 0) begin // Check for NaN
 				state <= STATE_COMPLETE;
 				sqrt_mant <= 23'h7fffff;
 				set_bit_high <= 0;
-		end else begin
+			end else begin
 				state <= next_state;
 				sqrt_mant	<= next_sqrt_mant;
 				set_bit_high <= next_high;  
-		end
+			end
 		end 
 	end 
 

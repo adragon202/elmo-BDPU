@@ -6,4 +6,4 @@ module square_f32( a, sqr);
 	//code starts here
 	mult_f32 M1(.a(a),.b(a),.m(sqr));
 
-endmodule //addbit
+endmodule //square_f32
